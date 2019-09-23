@@ -1,26 +1,130 @@
 const express = require('express');
 const router = express();
 const connect = require('../../database/database');
+const requestip = require('request-ip');
 
-router.get('/:univ_id/btpost', function (req, res) {
+router.get('/post/:post_id', function (req, res) {
     var sql = `
         SELECT univ_post.*, user.user_nickname 
         FROM univ_post JOIN user ON univ_post.user_id=user.user_id 
+        WHERE post_id=? AND post_isDeleted=0
+    `;
+    var params = [req.params.post_id];
+
+    connect.query(sql, params, function (err, rows, fields) {
+        if(req.session.user){
+            let sql = `
+                SELECT * FROM post_like WHERE user_id=? AND post_id=?
+            `;
+            let params = [req.session.user.user_id, req.params.post_id];
+            connect.query(sql, params, function(err,resultrows, fields){
+                if(err){
+                    res.status(500).json({message:'error'});
+                }else{
+                    let result=[];
+                    if(resultrows[0]){
+                        result.push({
+                            message:'success',
+                            post_id:rows[0].post_id,
+                            univ_id:rows[0].univ_id,
+                            post_type:rows[0].post_type,
+                            post_topic:rows[0].post_topic,
+                            post_desc:rows[0].post_desc,
+                            post_comment_count:rows[0].post_comment_count,
+                            post_view_count:rows[0].post_view_count,
+                            post_like_count:rows[0].post_like_count,
+                            post_created:rows[0].post_created,
+                            user_nickname:rows[0].user_nickname,
+                            like:'on',
+                        });
+                    }else{
+                        result.push({
+                            message:'success',
+                            post_id:rows[0].post_id,
+                            univ_id:rows[0].univ_id,
+                            post_type:rows[0].post_type,
+                            post_topic:rows[0].post_topic,
+                            post_desc:rows[0].post_desc,
+                            post_comment_count:rows[0].post_comment_count,
+                            post_view_count:rows[0].post_view_count,
+                            post_like_count:rows[0].post_like_count,
+                            post_created:rows[0].post_created,
+                            user_nickname:rows[0].user_nickname,
+                            like:'off',
+                        });
+                    }
+                    res.json(result);
+                }
+            });
+        }else{
+            let result=[];
+            result.push({
+                message:'success',
+                post_id:rows[0].post_id,
+                univ_id:rows[0].univ_id,
+                post_type:rows[0].post_type,
+                post_topic:rows[0].post_topic,
+                post_desc:rows[0].post_desc,
+                post_comment_count:rows[0].post_comment_count,
+                post_view_count:rows[0].post_view_count,
+                post_like_count:rows[0].post_like_count,
+                post_created:rows[0].post_created,
+                user_nickname:rows[0].user_nickname,
+                like:'off',
+            });
+            res.json(result);
+        }
+    });
+});
+
+router.get('/:univ_id/btpost', function (req, res) {
+    var sql = `
+        SELECT univ_post.*, user.user_nickname
+        FROM univ_post 
+        JOIN user ON univ_post.user_id=user.user_id 
         WHERE univ_id=? AND post_type=?
         ORDER BY post_created DESC
     `;
-
-    console.log(req.query.startPostIndex,req.query.currentPostIndex);
-
     var params = [req.params.univ_id, req.query.board_type];
-    connect.query(sql, params, function(err, rows, fields){
+    // console.log(req.query.startPostIndex, req.query.currentPostIndex);
+
+    connect.query(sql, params, function (err, rows, fields) {
         let result = [];
-        for(let i = req.query.startPostIndex ; i<req.query.currentPostIndex; i++){
-            result.push(rows[i]);
+        let likePost = [];
+        if(req.session.user){
+            let sql = `
+                SELECT * FROM post_like WHERE user_id=?
+            `;
+            let params = [req.session.user.user_id];
+            connect.query(sql,params,function(err, rows2, fields){
+                for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
+                    if(rows[i]){
+                        let liked = 'off';
+                        for(let j=0;j<rows2.length;j++){
+                            if(rows[i].post_id===rows2[j].post_id){
+                                liked='on';
+                            }
+                        }
+                        rows[i] = {...rows[i], liked:liked}
+                        result.push(rows[i]);
+                    }else{
+                        result.push(rows[i]);
+                    }
+                }
+                res.send(result);
+            });
+        }else{
+            for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
+                if(rows[i]){
+                    rows[i] = {...rows[i],liked:'off'};
+                    result.push(rows[i]);
+                }else{
+                    result.push(rows[i]);
+                }
+            }
+            res.send(result);
         }
-        res.send(result);
     });
-    
 });
 
 /**
@@ -58,23 +162,37 @@ router.get('/:univ_id', function (req, res) {
     });
 });
 
-router.post('/writePost',function(req,res){
+router.post('/writePost', function (req, res) {
     var sql = `INSERT INTO univ_post(univ_id, post_type, post_topic, post_desc, user_id)
                 VALUES(?,?,?,?,?)
     `;
     var params = [req.body.univ_id, req.body.post_type, req.body.post_topic, req.body.post_desc, req.session.user.user_id];
 
-    connect.query(sql, params, function(err, rows, fields){
-        if(err){
+    // const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress;
+    // const ip = requestip.getClientIp(req);
+
+    // console.log(ip);
+    connect.query(sql, params, function (err, rows, fields) {
+        if (err) {
             console.log(err);
         }
-        if(rows.insertId){
-            res.status(201).json({message:'success'});
-        }else{
-            res.status(201).json({message:'failure'});
+        if (rows.insertId) {
+            res.status(201).json({ message: 'success' });
+        } else {
+            res.status(201).json({ message: 'failure' });
         }
     });
-    
+
 });
 
+router.patch('/postCountPlus', function(req,res){
+    let sql = `
+        UPDATE univ_post SET post_view_count=post_view_count+1 WHERE post_id=?
+    `;
+    let params = [req.body.post_id];
+    // console.log(req.body.post_id);
+    connect.query(sql, params, function(err,rows, fields){
+        res.json({message:'postCountUpdateOK'});
+    })
+})
 module.exports = router;
