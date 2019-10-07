@@ -138,6 +138,41 @@ router.post('/dropuser',function(req,res){
             }
         }
     });
+});
+
+router.get('/mypostlist',function(req,res){
+    let sql = `
+        SELECT univ_post.*, user.user_nickname FROM univ_post 
+        JOIN user ON univ_post.user_id=user.user_id
+        WHERE univ_post.user_id=? AND univ_post.post_isDeleted=0
+    `;
+    let params = [req.session.user.user_id];
+
+    connect.query(sql, params, function(err, rows, fields){
+        if(err){
+            res.json({message:'error'});
+        }else{
+            let result=[];
+            for(let i = 0; i<rows.length;i++){
+                let rowitem = {
+                    post_id:rows[i].post_id,
+                    univ_id:rows[i].univ_id,
+                    post_type:rows[i].post_type,
+                    post_topic:rows[i].post_topic,
+                    post_thumbnail_url:rows[i].post_thumbnail_url,
+                    post_image_count:rows[i].post_image_count,
+                    post_comment_count:rows[i].post_comment_count,
+                    post_view_count:rows[i].post_view_count,
+                    post_like_count:rows[i].post_like_count,
+                    post_created:rows[i].post_created,
+                    user_nickname:rows[i].user_nickname
+                }
+                result.push(rowitem);
+            }
+            res.json(result);
+        }
+    })
+
 })
 
 module.exports = router;
