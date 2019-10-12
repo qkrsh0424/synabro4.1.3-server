@@ -24,8 +24,15 @@ router.post('/',function(req,res){
                 connect.query(sql, params, function(err, rows, fields){
                     const user_password = cipher.makeEncryptPassword(req.body.user_password, rows[0].user_salt);
                     if(rows[0].user_password === user_password){
-                        req.session.user = {user_id:rows[0].user_id, user_nickname: rows[0].user_nickname, user_uid: rows[0].user_uid}
-                        res.status(201).json({message:'success', sessid: req.sessionID, user_id:rows[0].user_id, user_nickname:rows[0].user_nickname});
+                        req.session.user = {user_id:rows[0].user_id, user_nickname: rows[0].user_nickname, user_uid: rows[0].user_uid};
+                        // console.log(req.session.cookie);
+                        res.status(201).json({
+                            message:'success', 
+                            sessid: cipher.encrypt(req.sessionID),
+                            user_id:rows[0].user_id, 
+                            user_nickname:rows[0].user_nickname,
+                            cookie:req.session.cookie
+                        });
                     }else{
                         res.status(201).json({message:'failure'});
                     }

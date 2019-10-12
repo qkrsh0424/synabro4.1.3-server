@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express();
 const connect = require('../../database/database');
+const cipher = require('../../handler/security');
 const requestip = require('request-ip');
+
+var redis = require('redis'),
+    client = redis.createClient();
 
 //Custom handler
 const draftjsHandle = require('../../handler/draftjsHandle');
@@ -82,7 +86,7 @@ router.get('/post/:post_id', function (req, res) {
 
 // mainSearch and univSearch 
 router.get("/search/all", function (req, res) {
-    console.log(req.query.writeData);
+    // console.log(req.query.writeData);
 
     if (req.query.writeData !== undefined) {
         var data = '%' + decodeURIComponent(req.query.writeData.toString()) + '%';
@@ -171,29 +175,7 @@ router.get('/:univ_id/btpost', function (req, res) {
     connect.query(sql, params, function (err, rows, fields) {
         let result = [];
         let likePost = [];
-        if (req.session.user) {
-            let sql = `
-                SELECT * FROM post_like WHERE user_id=?
-            `;
-            let params = [req.session.user.user_id];
-            connect.query(sql, params, function (err, rows2, fields) {
-                for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
-                    if (rows[i]) {
-                        let liked = 'off';
-                        for (let j = 0; j < rows2.length; j++) {
-                            if (rows[i].post_id === rows2[j].post_id) {
-                                liked = 'on';
-                            }
-                        }
-                        rows[i] = { ...rows[i], liked: liked }
-                        result.push(rows[i]);
-                    } else {
-                        result.push(rows[i]);
-                    }
-                }
-                res.send(result);
-            });
-        } else {
+        if(req.query.usid===undefined){
             for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
                 if (rows[i]) {
                     rows[i] = { ...rows[i], liked: 'off' };
@@ -202,8 +184,84 @@ router.get('/:univ_id/btpost', function (req, res) {
                     result.push(rows[i]);
                 }
             }
-            res.send(result);
+            return res.send(result);
         }
+        const sessID = 'sess:'+cipher.decrypt(req.query.usid);
+        client.exists(sessID,(err,replyExists)=>{
+            if(replyExists){
+                client.get(sessID,(err,replyGet)=>{
+                    const resultGet = JSON.parse(replyGet);
+                    const user_id = resultGet.user.user_id;
+                        let sql = `
+                            SELECT * FROM post_like WHERE user_id=?
+                        `;
+                        let params = [user_id];
+                        connect.query(sql, params, function (err, rows2, fields) {
+                            for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
+                                if (rows[i]) {
+                                    let liked = 'off';
+                                    for (let j = 0; j < rows2.length; j++) {
+                                        if (rows[i].post_id === rows2[j].post_id) {
+                                            liked = 'on';
+                                        }
+                                    }
+                                    rows[i] = { ...rows[i], liked: liked }
+                                    result.push(rows[i]);
+                                } else {
+                                    result.push(rows[i]);
+                                }
+                            }
+                            res.send(result);
+                        });
+                });
+            }else {
+                for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
+                    if (rows[i]) {
+                        rows[i] = { ...rows[i], liked: 'off' };
+                        result.push(rows[i]);
+                    } else {
+                        result.push(rows[i]);
+                    }
+                }
+                res.send(result);
+            }
+        });
+
+        
+
+        // if (req.session.user) {
+        //     let sql = `
+        //         SELECT * FROM post_like WHERE user_id=?
+        //     `;
+        //     let params = [req.session.user.user_id];
+        //     connect.query(sql, params, function (err, rows2, fields) {
+        //         for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
+        //             if (rows[i]) {
+        //                 let liked = 'off';
+        //                 for (let j = 0; j < rows2.length; j++) {
+        //                     if (rows[i].post_id === rows2[j].post_id) {
+        //                         liked = 'on';
+        //                     }
+        //                 }
+        //                 rows[i] = { ...rows[i], liked: liked }
+        //                 result.push(rows[i]);
+        //             } else {
+        //                 result.push(rows[i]);
+        //             }
+        //         }
+        //         res.send(result);
+        //     });
+        // } else {
+        //     for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
+        //         if (rows[i]) {
+        //             rows[i] = { ...rows[i], liked: 'off' };
+        //             result.push(rows[i]);
+        //         } else {
+        //             result.push(rows[i]);
+        //         }
+        //     }
+        //     res.send(result);
+        // }
     });
 });
 

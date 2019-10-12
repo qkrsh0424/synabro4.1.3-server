@@ -1,20 +1,50 @@
 const express = require('express');
 const router = express();
-const redisClient = require('connect-redis');
+const cipher = require('../../handler/security');
+var redis = require('redis'),
+    client = redis.createClient();
 
 router.post('/',function(req,res){
-    if(req.session){
-        if(req.session.user){
-            res.status(200).json({
-                message:'connect success', 
-                sessid: req.sessionID,
-                user_id:req.session.user.user_id, 
-                user_nickname: req.session.user.user_nickname
-            })
-        }else{
-            res.status(200).json({message:'connect fail'})
-        }
+    // let keykey = 'fnolUuyMpLC03toHAVLpmvEUJLRBQI6Q'
+    // let sessID = 'sess:'+keykey;
+
+    // client.exists(sessID,(err,re)=>{
+    //     console.log(re);
+    // })
+    // console.log('hi');
+    if(req.body.usid!==undefined){
+        const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+        client.exists(sessID,(err, replyExists)=>{
+            if(replyExists){
+                client.get(sessID,(err,replyGet)=>{
+                    result = JSON.parse(replyGet);
+                    res.status(200).json({
+                        message:'connect success', 
+                        sessid: req.body.usid,
+                        user_id:result.user.user_id, 
+                        user_nickname: result.user.user_nickname
+                    });
+                });
+            }else{
+                res.status(200).json({message:'connect fail'})
+            }
+        })
+    }else{
+        res.status(200).json({message:'connect fail'})
     }
+    
+    // if(req.session){
+    //     if(req.session.user){
+    //         res.status(200).json({
+    //             message:'connect success', 
+    //             sessid: req.sessionID,
+    //             user_id:req.session.user.user_id, 
+    //             user_nickname: req.session.user.user_nickname
+    //         })
+    //     }else{
+    //         res.status(200).json({message:'connect fail'})
+    //     }
+    // }
 });
 
 module.exports = router;
