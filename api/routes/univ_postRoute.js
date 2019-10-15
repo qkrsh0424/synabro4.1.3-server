@@ -19,51 +19,8 @@ router.get('/post/:post_id', function (req, res) {
     var params = [req.params.post_id];
 
     connect.query(sql, params, function (err, rows, fields) {
-        if (req.session.user) {
-            let sql = `
-                SELECT * FROM post_like WHERE user_id=? AND post_id=?
-            `;
-            let params = [req.session.user.user_id, req.params.post_id];
-            connect.query(sql, params, function (err, resultrows, fields) {
-                if (err) {
-                    res.status(500).json({ message: 'error' });
-                } else {
-                    let result = [];
-                    if (resultrows[0]) {
-                        result.push({
-                            message: 'success',
-                            post_id: rows[0].post_id,
-                            univ_id: rows[0].univ_id,
-                            post_type: rows[0].post_type,
-                            post_topic: rows[0].post_topic,
-                            post_desc: rows[0].post_desc,
-                            post_comment_count: rows[0].post_comment_count,
-                            post_view_count: rows[0].post_view_count,
-                            post_like_count: rows[0].post_like_count,
-                            post_created: rows[0].post_created,
-                            user_nickname: rows[0].user_nickname,
-                            like: 'on',
-                        });
-                    } else {
-                        result.push({
-                            message: 'success',
-                            post_id: rows[0].post_id,
-                            univ_id: rows[0].univ_id,
-                            post_type: rows[0].post_type,
-                            post_topic: rows[0].post_topic,
-                            post_desc: rows[0].post_desc,
-                            post_comment_count: rows[0].post_comment_count,
-                            post_view_count: rows[0].post_view_count,
-                            post_like_count: rows[0].post_like_count,
-                            post_created: rows[0].post_created,
-                            user_nickname: rows[0].user_nickname,
-                            like: 'off',
-                        });
-                    }
-                    res.json(result);
-                }
-            });
-        } else {
+        let result = [];
+        if(req.query.usid===undefined){
             let result = [];
             result.push({
                 message: 'success',
@@ -79,8 +36,124 @@ router.get('/post/:post_id', function (req, res) {
                 user_nickname: rows[0].user_nickname,
                 like: 'off',
             });
-            res.json(result);
+            return res.json(result);
         }
+
+        const sessID = 'sess:'+cipher.decrypt(req.query.usid);
+        client.exists(sessID,(err,replyExists)=>{
+            if(replyExists){
+                client.get(sessID,(err,replyGet)=>{
+                    const resultGet = JSON.parse(replyGet);
+                    const user_id = resultGet.user.user_id;
+                    let sql = `
+                        SELECT * FROM post_like WHERE user_id=? AND post_id=?
+                    `;
+                    let params = [user_id, req.params.post_id];
+                    connect.query(sql, params, function (err, resultrows, fields) {
+                        if (err) {
+                            res.status(500).json({ message: 'error' });
+                        } else {
+                            let result = [];
+                            if (resultrows[0]) {
+                                result.push({
+                                    message: 'success',
+                                    post_id: rows[0].post_id,
+                                    univ_id: rows[0].univ_id,
+                                    post_type: rows[0].post_type,
+                                    post_topic: rows[0].post_topic,
+                                    post_desc: rows[0].post_desc,
+                                    post_comment_count: rows[0].post_comment_count,
+                                    post_view_count: rows[0].post_view_count,
+                                    post_like_count: rows[0].post_like_count,
+                                    post_created: rows[0].post_created,
+                                    user_nickname: rows[0].user_nickname,
+                                    like: 'on',
+                                });
+                            } else {
+                                result.push({
+                                    message: 'success',
+                                    post_id: rows[0].post_id,
+                                    univ_id: rows[0].univ_id,
+                                    post_type: rows[0].post_type,
+                                    post_topic: rows[0].post_topic,
+                                    post_desc: rows[0].post_desc,
+                                    post_comment_count: rows[0].post_comment_count,
+                                    post_view_count: rows[0].post_view_count,
+                                    post_like_count: rows[0].post_like_count,
+                                    post_created: rows[0].post_created,
+                                    user_nickname: rows[0].user_nickname,
+                                    like: 'off',
+                                });
+                            }
+                            res.json(result);
+                        }
+                    });
+                });
+            }
+        });
+
+        // if (req.session.user) {
+        //     let sql = `
+        //         SELECT * FROM post_like WHERE user_id=? AND post_id=?
+        //     `;
+        //     let params = [req.session.user.user_id, req.params.post_id];
+        //     connect.query(sql, params, function (err, resultrows, fields) {
+        //         if (err) {
+        //             res.status(500).json({ message: 'error' });
+        //         } else {
+        //             let result = [];
+        //             if (resultrows[0]) {
+        //                 result.push({
+        //                     message: 'success',
+        //                     post_id: rows[0].post_id,
+        //                     univ_id: rows[0].univ_id,
+        //                     post_type: rows[0].post_type,
+        //                     post_topic: rows[0].post_topic,
+        //                     post_desc: rows[0].post_desc,
+        //                     post_comment_count: rows[0].post_comment_count,
+        //                     post_view_count: rows[0].post_view_count,
+        //                     post_like_count: rows[0].post_like_count,
+        //                     post_created: rows[0].post_created,
+        //                     user_nickname: rows[0].user_nickname,
+        //                     like: 'on',
+        //                 });
+        //             } else {
+        //                 result.push({
+        //                     message: 'success',
+        //                     post_id: rows[0].post_id,
+        //                     univ_id: rows[0].univ_id,
+        //                     post_type: rows[0].post_type,
+        //                     post_topic: rows[0].post_topic,
+        //                     post_desc: rows[0].post_desc,
+        //                     post_comment_count: rows[0].post_comment_count,
+        //                     post_view_count: rows[0].post_view_count,
+        //                     post_like_count: rows[0].post_like_count,
+        //                     post_created: rows[0].post_created,
+        //                     user_nickname: rows[0].user_nickname,
+        //                     like: 'off',
+        //                 });
+        //             }
+        //             res.json(result);
+        //         }
+        //     });
+        // } else {
+        //     let result = [];
+        //     result.push({
+        //         message: 'success',
+        //         post_id: rows[0].post_id,
+        //         univ_id: rows[0].univ_id,
+        //         post_type: rows[0].post_type,
+        //         post_topic: rows[0].post_topic,
+        //         post_desc: rows[0].post_desc,
+        //         post_comment_count: rows[0].post_comment_count,
+        //         post_view_count: rows[0].post_view_count,
+        //         post_like_count: rows[0].post_like_count,
+        //         post_created: rows[0].post_created,
+        //         user_nickname: rows[0].user_nickname,
+        //         like: 'off',
+        //     });
+        //     res.json(result);
+        // }
     });
 });
 
@@ -293,52 +366,89 @@ router.get('/:univ_id', function (req, res) {
     });
 });
 
-router.get('/:univ_id', function (req, res) {
-    var sql = 'SELECT * FROM univ_post WHERE univ_id=?';
-    var params = [req.params.univ_id];
-    connect.query(sql, params, function (err, rows, fields) {
-        console.log(rows);
-    });
-});
-
 router.post('/writePost', function (req, res) {
-
-    if (!req.session.user) {
-        res.json({ message: 'invalidUser' });
-    } else {
-        //draftJS 포맷 형식으로만 파라미터를 설정해준다.
-        let post_image_count = draftjsHandle.getImageCount(req.body.post_desc); // 이미지 개수 계산
-        let post_thumbnail_url = draftjsHandle.getThumbnailUrl(req.body.post_desc); // 포스터의 첫번째 사진을 썸네일로 한다.
-
-        var sql = `INSERT INTO univ_post(univ_id, post_type, post_topic, post_desc, post_thumbnail_url, post_image_count, user_id)
-                VALUES(?,?,?,?,?,?,?)
-    `;
-        var params = [
-            req.body.univ_id,
-            req.body.post_type,
-            req.body.post_topic,
-            req.body.post_desc,
-            post_thumbnail_url,
-            post_image_count,
-            req.session.user.user_id
-        ];
-        // const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress;
-        // const ip = requestip.getClientIp(req);
-
-        // console.log(ip);
-
-        connect.query(sql, params, function (err, rows, fields) {
-            if (err) {
-                console.log(err);
-            } else {
-                if (rows.insertId) {
-                    res.status(201).json({ message: 'success' });
-                } else {
-                    res.status(201).json({ message: 'failure' });
-                }
-            }
-        });
+    if(req.body.usid===null){
+        return res.json({ message: 'invalidUser' });
     }
+
+    const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+    client.exists(sessID,(err,replyExists)=>{
+        if(replyExists){
+            client.get(sessID,(err,replyGet)=>{
+                const resultGet = JSON.parse(replyGet);
+                const user_id = resultGet.user.user_id;
+
+                //draftJS 포맷 형식으로만 파라미터를 설정해준다.
+                let post_image_count = draftjsHandle.getImageCount(req.body.post_desc); // 이미지 개수 계산
+                let post_thumbnail_url = draftjsHandle.getThumbnailUrl(req.body.post_desc); // 포스터의 첫번째 사진을 썸네일로 한다.
+
+                var sql = `INSERT INTO univ_post(univ_id, post_type, post_topic, post_desc, post_thumbnail_url, post_image_count, user_id)
+                        VALUES(?,?,?,?,?,?,?)
+            `;
+                var params = [
+                    req.body.univ_id,
+                    req.body.post_type,
+                    req.body.post_topic,
+                    req.body.post_desc,
+                    post_thumbnail_url,
+                    post_image_count,
+                    user_id
+                ];
+                // const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress;
+                // const ip = requestip.getClientIp(req);
+
+                // console.log(ip);
+
+                connect.query(sql, params, function (err, rows, fields) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        if (rows.insertId) {
+                            res.status(201).json({ message: 'success' });
+                        } else {
+                            res.status(201).json({ message: 'failure' });
+                        }
+                    }
+                });
+            });
+        }
+    });
+    // if (!req.session.user) {
+    //     res.json({ message: 'invalidUser' });
+    // } else {
+    //     //draftJS 포맷 형식으로만 파라미터를 설정해준다.
+    //     let post_image_count = draftjsHandle.getImageCount(req.body.post_desc); // 이미지 개수 계산
+    //     let post_thumbnail_url = draftjsHandle.getThumbnailUrl(req.body.post_desc); // 포스터의 첫번째 사진을 썸네일로 한다.
+
+    //     var sql = `INSERT INTO univ_post(univ_id, post_type, post_topic, post_desc, post_thumbnail_url, post_image_count, user_id)
+    //             VALUES(?,?,?,?,?,?,?)
+    // `;
+    //     var params = [
+    //         req.body.univ_id,
+    //         req.body.post_type,
+    //         req.body.post_topic,
+    //         req.body.post_desc,
+    //         post_thumbnail_url,
+    //         post_image_count,
+    //         req.session.user.user_id
+    //     ];
+    //     // const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress;
+    //     // const ip = requestip.getClientIp(req);
+
+    //     // console.log(ip);
+
+    //     connect.query(sql, params, function (err, rows, fields) {
+    //         if (err) {
+    //             console.log(err);
+    //         } else {
+    //             if (rows.insertId) {
+    //                 res.status(201).json({ message: 'success' });
+    //             } else {
+    //                 res.status(201).json({ message: 'failure' });
+    //             }
+    //         }
+    //     });
+    // }
 });
 
 router.patch('/postCountPlus', function (req, res) {

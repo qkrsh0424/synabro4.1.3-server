@@ -125,6 +125,9 @@ router.patch('/chguserinfo', function(req,res){
 router.post('/chgpassword',function(req,res){
     const getOldPassword = req.body.oldPassword;
     const getNewPassword = req.body.newPassword;
+    if(req.body.usid===null){
+        return res.status(200).json({message:'failure'});
+    }
     const sessID = 'sess:'+cipher.decrypt(req.body.usid);
     client.exists(sessID,(err, replyExists)=>{
         if(replyExists){
@@ -217,7 +220,7 @@ router.post('/chgpassword',function(req,res){
 
 router.post('/dropuser',function(req,res){
     const getCurrentPassword = req.body.currentPassword;
-    if(req.body.usid===undefined){
+    if(req.body.usid===null){
         return res.json({message:'error'});
     }
     const sessID = 'sess:'+cipher.decrypt(req.body.usid);
@@ -289,6 +292,10 @@ router.post('/dropuser',function(req,res){
 });
 
 router.get('/mypostlist',function(req,res){
+    if(req.query.usid===undefined){
+        return res.json({message:'invalidUser'});
+    }
+    
     const sessID = 'sess:' + cipher.decrypt(req.query.usid);
     client.exists(sessID,(err, replyExists)=>{
         if(replyExists){
@@ -308,6 +315,7 @@ router.get('/mypostlist',function(req,res){
                         let result=[];
                         for(let i = 0; i<rows.length;i++){
                             let rowitem = {
+                                message:'success',
                                 post_id:rows[i].post_id,
                                 univ_id:rows[i].univ_id,
                                 post_type:rows[i].post_type,

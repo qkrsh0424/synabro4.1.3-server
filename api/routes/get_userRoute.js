@@ -8,7 +8,7 @@ var redis = require('redis'),
 
 router.post('/get_profile',function(req,res){
     // console.log(req.body.usid);
-    if(req.body.usid===undefined){
+    if(req.body.usid===null){
         return res.json({message:'invalidLogin'});
     }
     const sessID = 'sess:'+cipher.decrypt(req.body.usid);

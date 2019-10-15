@@ -28,6 +28,7 @@ app.use(session);
 app.use(cors());
 
 const shbRoute = require(__dirname+'/api/routes/shbRoute');
+const postRoute = require(__dirname+'/api/routes/postRoute');
 
 const contactRoute = require(__dirname+'/api/routes/contactRoute');
 
@@ -48,6 +49,8 @@ const get_userRoute = require(__dirname+'/api/routes/get_userRoute');
 const profileRoute = require(__dirname+'/api/routes/profileRoute');
 
 app.use('/api/shb',shbRoute);
+app.use('/api/post', postRoute);
+
 app.use('/api/contact',contactRoute);
 
 app.use('/api/univ',univRoute);
