@@ -49,7 +49,7 @@ const get_userRoute = require(__dirname+'/api/routes/get_userRoute');
 const profileRoute = require(__dirname+'/api/routes/profileRoute');
 
 app.use('/api/shb',shbRoute);
-app.use('/api/post', postRoute);
+app.use('/api/shb/post', postRoute);
 
 app.use('/api/contact',contactRoute);
 

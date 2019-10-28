@@ -19,78 +19,85 @@ router.get('/post/:post_id', function (req, res) {
     var params = [req.params.post_id];
 
     connect.query(sql, params, function (err, rows, fields) {
-        let result = [];
-        if(req.query.usid===undefined){
-            let result = [];
-            result.push({
-                message: 'success',
-                post_id: rows[0].post_id,
-                univ_id: rows[0].univ_id,
-                post_type: rows[0].post_type,
-                post_topic: rows[0].post_topic,
-                post_desc: rows[0].post_desc,
-                post_comment_count: rows[0].post_comment_count,
-                post_view_count: rows[0].post_view_count,
-                post_like_count: rows[0].post_like_count,
-                post_created: rows[0].post_created,
-                user_nickname: rows[0].user_nickname,
-                like: 'off',
-            });
-            return res.json(result);
-        }
-
-        const sessID = 'sess:'+cipher.decrypt(req.query.usid);
-        client.exists(sessID,(err,replyExists)=>{
-            if(replyExists){
-                client.get(sessID,(err,replyGet)=>{
-                    const resultGet = JSON.parse(replyGet);
-                    const user_id = resultGet.user.user_id;
-                    let sql = `
-                        SELECT * FROM post_like WHERE user_id=? AND post_id=?
-                    `;
-                    let params = [user_id, req.params.post_id];
-                    connect.query(sql, params, function (err, resultrows, fields) {
-                        if (err) {
-                            res.status(500).json({ message: 'error' });
-                        } else {
-                            let result = [];
-                            if (resultrows[0]) {
-                                result.push({
-                                    message: 'success',
-                                    post_id: rows[0].post_id,
-                                    univ_id: rows[0].univ_id,
-                                    post_type: rows[0].post_type,
-                                    post_topic: rows[0].post_topic,
-                                    post_desc: rows[0].post_desc,
-                                    post_comment_count: rows[0].post_comment_count,
-                                    post_view_count: rows[0].post_view_count,
-                                    post_like_count: rows[0].post_like_count,
-                                    post_created: rows[0].post_created,
-                                    user_nickname: rows[0].user_nickname,
-                                    like: 'on',
-                                });
-                            } else {
-                                result.push({
-                                    message: 'success',
-                                    post_id: rows[0].post_id,
-                                    univ_id: rows[0].univ_id,
-                                    post_type: rows[0].post_type,
-                                    post_topic: rows[0].post_topic,
-                                    post_desc: rows[0].post_desc,
-                                    post_comment_count: rows[0].post_comment_count,
-                                    post_view_count: rows[0].post_view_count,
-                                    post_like_count: rows[0].post_like_count,
-                                    post_created: rows[0].post_created,
-                                    user_nickname: rows[0].user_nickname,
-                                    like: 'off',
-                                });
-                            }
-                            res.json(result);
-                        }
-                    });
+        if(rows[0]){
+            if(req.query.usid===undefined){
+                let result = [];
+                result.push({
+                    message: 'success',
+                    post_id: rows[0].post_id,
+                    univ_id: rows[0].univ_id,
+                    post_type: rows[0].post_type,
+                    post_topic: rows[0].post_topic,
+                    post_desc: rows[0].post_desc,
+                    post_comment_count: rows[0].post_comment_count,
+                    post_view_count: rows[0].post_view_count,
+                    post_like_count: rows[0].post_like_count,
+                    post_created: rows[0].post_created,
+                    user_nickname: rows[0].user_nickname,
+                    like: 'off',
                 });
+                return res.json(result);
             }
-        });
+    
+            const sessID = 'sess:'+cipher.decrypt(req.query.usid);
+            client.exists(sessID,(err,replyExists)=>{
+                if(replyExists){
+                    client.get(sessID,(err,replyGet)=>{
+                        const resultGet = JSON.parse(replyGet);
+                        const user_id = resultGet.user.user_id;
+                        
+                        let sql = `
+                            SELECT * FROM post_like WHERE user_id=? AND post_id=? AND post_like_head_type=?
+                        `;
+                        let params = [user_id, req.params.post_id, rows[0].univ_id];
+                        connect.query(sql, params, function (err, resultrows, fields) {
+                            if (err) {
+                                res.status(500).json({ message: 'error' });
+                            } else {
+                                let result = [];
+                                if (resultrows[0]) {
+    
+                                    result.push({
+                                        message: 'success',
+                                        post_id: rows[0].post_id,
+                                        univ_id: rows[0].univ_id,
+                                        post_type: rows[0].post_type,
+                                        post_topic: rows[0].post_topic,
+                                        post_desc: rows[0].post_desc,
+                                        post_comment_count: rows[0].post_comment_count,
+                                        post_view_count: rows[0].post_view_count,
+                                        post_like_count: rows[0].post_like_count,
+                                        post_created: rows[0].post_created,
+                                        user_nickname: rows[0].user_nickname,
+                                        like: 'on',
+                                    });
+                                } else {
+                                    result.push({
+                                        message: 'success',
+                                        post_id: rows[0].post_id,
+                                        univ_id: rows[0].univ_id,
+                                        post_type: rows[0].post_type,
+                                        post_topic: rows[0].post_topic,
+                                        post_desc: rows[0].post_desc,
+                                        post_comment_count: rows[0].post_comment_count,
+                                        post_view_count: rows[0].post_view_count,
+                                        post_like_count: rows[0].post_like_count,
+                                        post_created: rows[0].post_created,
+                                        user_nickname: rows[0].user_nickname,
+                                        like: 'off',
+                                    });
+                                }
+                                res.json(result);
+                                
+                            }
+                        });
+                    });
+                }
+            });
+        }else{
+            res.status(500).json({ message: 'error' });
+        }
+        
 
         // if (req.session.user) {
         //     let sql = `
@@ -234,6 +241,44 @@ router.get("/search/univ/:univ_id", function (req, res) {
     }
 });
 
+router.get('/getpost/univ/all',function(req,res){
+    let sql = `
+        SELECT univ_post.*, user.user_nickname
+        FROM univ_post
+        JOIN user ON univ_post.user_id=user.user_id
+        WHERE univ_post.univ_id=? AND post_isDeleted=0
+        ORDER BY univ_post.post_created DESC
+    `;
+
+    let params = [req.query.univ_id];
+
+    connect.query(sql, params, function(err, rows, fields){
+        let result = [];
+            for(let i = req.query.startPostIndex; i<req.query.currentPostIndex;i++){
+                if(rows[i]){
+                    result.push({
+                        post_id:rows[i].post_id,
+                        univ_id:rows[i].univ_id,
+                        post_type:rows[i].post_type,
+                        post_topic:rows[i].post_topic,
+                        post_desc:rows[i].post_desc,
+                        post_thumbnail_url:rows[i].post_thumbnail_url,
+                        post_like_count:rows[i].post_like_count,
+                        post_comment_count:rows[i].post_comment_count,
+                        post_view_count:rows[i].post_view_count,
+                        post_image_count:rows[i].post_image_count,
+                        user_nickname:rows[i].user_nickname,
+                        post_created: rows[i].post_created,
+                        post_updated:rows[i].post_updated,
+                        liked:'off'
+                    });
+                }
+            }
+            res.json(result);
+        });
+
+});
+
 router.get('/:univ_id/btpost', function (req, res) {
     var sql = `
         SELECT univ_post.*, user.user_nickname
@@ -274,7 +319,7 @@ router.get('/:univ_id/btpost', function (req, res) {
                                 if (rows[i]) {
                                     let liked = 'off';
                                     for (let j = 0; j < rows2.length; j++) {
-                                        if (rows[i].post_id === rows2[j].post_id) {
+                                        if (rows[i].post_id === rows2[j].post_id && String(rows[i].univ_id)===String(rows2[j].post_like_head_type)) {
                                             liked = 'on';
                                         }
                                     }
@@ -366,6 +411,7 @@ router.get('/:univ_id', function (req, res) {
     });
 });
 
+
 router.post('/writePost', function (req, res) {
     if(req.body.usid===null){
         return res.json({ message: 'invalidUser' });
@@ -384,7 +430,7 @@ router.post('/writePost', function (req, res) {
 
                 var sql = `INSERT INTO univ_post(univ_id, post_type, post_topic, post_desc, post_thumbnail_url, post_image_count, user_id)
                         VALUES(?,?,?,?,?,?,?)
-            `;
+                `;
                 var params = [
                     req.body.univ_id,
                     req.body.post_type,
@@ -461,6 +507,4 @@ router.patch('/postCountPlus', function (req, res) {
         res.json({ message: 'postCountUpdateOK' });
     })
 });
-
-
 module.exports = router;
