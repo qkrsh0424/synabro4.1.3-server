@@ -3,6 +3,18 @@ const router = express();
 const cipher = require('../../handler/security');
 const connect = require('../../database/database');
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
 router.post('/',function(req,res){
     const user_uid = cipher.encrypt(req.body.user_uid);
 

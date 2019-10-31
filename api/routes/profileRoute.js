@@ -5,6 +5,18 @@ const connect = require('../../database/database');
 var redis = require('redis'),
     client = redis.createClient();
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
 router.patch('/chguserinfo', function(req,res){
     // console.log(req.body.UID);
     // console.log(req.body.Email);
@@ -291,7 +303,7 @@ router.post('/dropuser',function(req,res){
     // });
 });
 
-router.get('/mypostlist',function(req,res){
+router.get('/mypostlist/univ',function(req,res){
     if(req.query.usid===undefined){
         return res.json({message:'invalidUser'});
     }
@@ -303,34 +315,49 @@ router.get('/mypostlist',function(req,res){
                 let resultGet = JSON.parse(replyGet);
                 let user_id = resultGet.user.user_id;
                 let sql = `
-                    SELECT univ_post.*, user.user_nickname FROM univ_post 
+                    SELECT univ_post.*, user.user_nickname, univ.univ_title, univ_item.univ_item_title
+                    FROM univ_post 
                     JOIN user ON univ_post.user_id=user.user_id
-                    WHERE univ_post.user_id=? AND univ_post.post_isDeleted=0
+                    JOIN univ ON univ_post.univ_id=univ.univ_id
+                    JOIN univ_item ON univ_post.post_type=univ_item.univ_item_address
+                    WHERE univ_post.user_id=? AND univ.univ_id=univ_item.univ_id AND univ_post.post_isDeleted=0
                 `;
                 let params = [user_id];
                 connect.query(sql, params, function(err, rows, fields){
                     if(err){
                         res.json({message:'error'});
                     }else{
-                        let result=[];
-                        for(let i = 0; i<rows.length;i++){
+                        if(rows[0]){
+                            let result=[];
+                            for(let i = 0; i<rows.length;i++){
+                                let rowitem = {
+                                    message:'success',
+                                    post_id:rows[i].post_id,
+                                    univ_id:rows[i].univ_id,
+                                    post_type:rows[i].post_type,
+                                    post_topic:rows[i].post_topic,
+                                    post_thumbnail_url:rows[i].post_thumbnail_url,
+                                    post_image_count:rows[i].post_image_count,
+                                    post_comment_count:rows[i].post_comment_count,
+                                    post_view_count:rows[i].post_view_count,
+                                    post_like_count:rows[i].post_like_count,
+                                    post_created:rows[i].post_created,
+                                    user_nickname:rows[i].user_nickname,
+                                    univ_title:rows[i].univ_title,
+                                    univ_item_title:rows[i].univ_item_title
+                                }
+                                result.push(rowitem);
+                            }
+                            res.json(result);
+                        }else{
+                            let result=[];
                             let rowitem = {
-                                message:'success',
-                                post_id:rows[i].post_id,
-                                univ_id:rows[i].univ_id,
-                                post_type:rows[i].post_type,
-                                post_topic:rows[i].post_topic,
-                                post_thumbnail_url:rows[i].post_thumbnail_url,
-                                post_image_count:rows[i].post_image_count,
-                                post_comment_count:rows[i].post_comment_count,
-                                post_view_count:rows[i].post_view_count,
-                                post_like_count:rows[i].post_like_count,
-                                post_created:rows[i].post_created,
-                                user_nickname:rows[i].user_nickname
+                                message:'notPost',
                             }
                             result.push(rowitem);
+                            res.json(result);
                         }
-                        res.json(result);
+                        
                     }
                 });
             });
@@ -368,6 +395,69 @@ router.get('/mypostlist',function(req,res){
     //     }
     // })
 
+});
+
+router.get('/mypostlist/shb',function(req,res){
+    if(req.query.usid===undefined){
+        return res.json({message:'invalidUser'});
+    }
+    
+    const sessID = 'sess:' + cipher.decrypt(req.query.usid);
+    client.exists(sessID,(err, replyExists)=>{
+        if(replyExists){
+            client.get(sessID,(err,replyGet)=>{
+                let resultGet = JSON.parse(replyGet);
+                let user_id = resultGet.user.user_id;
+                let sql = `
+                    SELECT post.*, user.user_nickname, shb.shb_name, shb_item.shb_item_name
+                    FROM post 
+                    JOIN user ON post.user_id=user.user_id
+                    JOIN shb ON post.shb_num=shb.shb_num
+                    JOIN shb_item ON post.shb_item_id=shb_item.shb_item_id
+                    WHERE post.user_id=? AND shb.shb_num=shb_item.shb_num AND post.post_isDeleted=0
+                `;
+                let params = [user_id];
+                connect.query(sql, params, function(err, rows, fields){
+                    if(err){
+                        res.json({message:'error'});
+                    }else{
+                        if(rows[0]){
+                            let result=[];
+                            for(let i = 0; i<rows.length;i++){
+                                let rowitem = {
+                                    message:'success',
+                                    post_id:rows[i].post_id,
+                                    parent_route:rows[i].parent_route,
+                                    shb_num:rows[i].shb_num,
+                                    shb_item_id:rows[i].shb_item_id,
+                                    post_title:rows[i].post_title,
+                                    post_thumbnail_url:rows[i].post_thumbnail_url,
+                                    post_image_count:rows[i].post_image_count,
+                                    post_comment_count:rows[i].post_comment_count,
+                                    post_view_count:rows[i].post_view_count,
+                                    post_like_count:rows[i].post_like_count,
+                                    post_created:rows[i].post_created,
+                                    user_nickname:rows[i].user_nickname,
+                                    shb_name:rows[i].shb_name,
+                                    shb_item_name:rows[i].shb_item_name
+                                }
+                                result.push(rowitem);
+                            }
+                            res.json(result);
+                        }else{
+                            let result=[];
+                            let rowitem = {
+                                message:'notPost',
+                            }
+                            result.push(rowitem);
+                            res.json(result);
+                        }
+                        
+                    }
+                });
+            });
+        }
+    });
 });
 
 module.exports = router;

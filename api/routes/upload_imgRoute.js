@@ -53,6 +53,18 @@ let client = new OSS({
 
 // var uploadDraft = multer({ dest: '../uploads/' });
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
 router.post('/draft', upload.single('file'),function(req,res){
     // console.log(req.file);
     if(req.file){

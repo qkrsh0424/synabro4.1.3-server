@@ -4,6 +4,18 @@ const cipher = require('../../handler/security');
 var redis = require('redis'),
     client = redis.createClient();
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+    
 router.post('/',function(req,res){
     // let keykey = 'fnolUuyMpLC03toHAVLpmvEUJLRBQI6Q'
     // let sessID = 'sess:'+keykey;

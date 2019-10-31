@@ -10,6 +10,18 @@ var redis = require('redis'),
 //Custom handler
 const draftjsHandle = require('../../handler/draftjsHandle');
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
 router.get('/post/:post_id', function (req, res) {
     var sql = `
         SELECT univ_post.*, user.user_nickname 
@@ -413,10 +425,9 @@ router.get('/:univ_id', function (req, res) {
 
 
 router.post('/writePost', function (req, res) {
-    if(req.body.usid===null){
+    if(req.body.usid===undefined){
         return res.json({ message: 'invalidUser' });
     }
-
     const sessID = 'sess:'+cipher.decrypt(req.body.usid);
     client.exists(sessID,(err,replyExists)=>{
         if(replyExists){
@@ -507,4 +518,12 @@ router.patch('/postCountPlus', function (req, res) {
         res.json({ message: 'postCountUpdateOK' });
     })
 });
+
+router.post('/posterValidation/univ', function(req,res){
+    res.send({
+        data:`
+            <h1>hihi<h1>
+        `
+    });
+})
 module.exports = router;

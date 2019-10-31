@@ -2,6 +2,18 @@ const express = require('express');
 const router = express();
 const connect = require('../../database/database');
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
 router.get('/getshbAll',function(req,res){
     if(req.query.type){
         let sql = `
@@ -43,6 +55,27 @@ router.get('/getshbAll',function(req,res){
             }
         });
     }
+    
+});
+
+router.get('/getshbOne',function(req,res){
+        let sql = `
+            SELECT * FROM shb
+            WHERE shb_num=? AND shb_isDeleted=0
+        `;
+        let params = [req.query.shb_num];
+
+        connect.query(sql, params, function(err, rows, fields){
+            if(err){
+                res.json({message:'DBerror'});
+            }else{
+                if(!rows){
+                    res.json({message:"failure"})
+                }else{
+                    res.json({message:'success', data:rows});
+                }
+            }
+        });
     
 });
 

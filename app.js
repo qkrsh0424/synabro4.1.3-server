@@ -2,9 +2,8 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const cors = require('cors');
-
 const session = require('./handler/sessionHandle');
-
+const corsCheck = require('./config/corsCheck');
 //bodyParser load
 const bodyParser = require('body-parser');
 
@@ -27,6 +26,19 @@ app.use(session);
 // app.use(cors(corsOptions));
 app.use(cors());
 
+// app.use(function (req, res, next) { //1
+//     console.log(req.headers.authorization);
+//     console.log(corsCheck.checkAuth(req.headers.authorization));
+//     // if(req.headers.authorization){
+//         if(corsCheck.checkAuth(req.headers.authorization)){
+//             next();
+//         }else{
+//             res.send(`<h1>not Found Page</h1>`);
+//         }
+//     // }
+    
+// });
+
 const shbRoute = require(__dirname+'/api/routes/shbRoute');
 const postRoute = require(__dirname+'/api/routes/postRoute');
 
@@ -48,6 +60,8 @@ const auth_userRoute = require(__dirname+'/api/routes/auth_userRoute');
 const get_userRoute = require(__dirname+'/api/routes/get_userRoute');
 const profileRoute = require(__dirname+'/api/routes/profileRoute');
 
+
+
 app.use('/api/shb',shbRoute);
 app.use('/api/shb/post', postRoute);
 
@@ -68,6 +82,8 @@ app.use('/api/auth/authentication',auth_userRoute);
 app.use('/api/auth/getuser',get_userRoute);
 app.use('/api/auth/profile',profileRoute);
 
+
+//Deploy Setting
 // app.use(express.static(path.join(__dirname, "../client/build")));
 
 // app.get('/*',function(req,res){

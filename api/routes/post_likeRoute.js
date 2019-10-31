@@ -5,7 +5,46 @@ const cipher = require('../../handler/security');
 var redis = require('redis'),
     client = redis.createClient();
 
-router.get('/get_list', function(req,res){
+
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
+router.get('/get_list/shb', function(req,res){
+    const sessID = 'sess:' + cipher.decrypt(req.query.usid);
+    client.exists(sessID,(err, replyExists)=>{
+        if(replyExists){
+            client.get(sessID,(err,replyGet)=>{
+                let resultGet = JSON.parse(replyGet);
+                let user_id = resultGet.user.user_id;
+                var sql = `
+                    SELECT post.post_id, post.parent_route, post.shb_num, post.shb_item_id, post.post_title,
+                        user.user_nickname 
+                    FROM post_like
+                    JOIN post ON post.post_id=post_like.post_id
+                    JOIN user ON post.user_id=user.user_id
+                    WHERE post_like.user_id=?
+                `;
+                var params = [user_id];
+
+                connect.query(sql, params, function(err, rows, fields){
+                    
+                    res.status(200).json(rows);        
+                });
+            })
+        }
+    });
+});
+
+router.get('/get_list/univ', function(req,res){
     const sessID = 'sess:' + cipher.decrypt(req.query.usid);
     client.exists(sessID,(err, replyExists)=>{
         if(replyExists){

@@ -8,6 +8,18 @@ var redis = require('redis'),
 
 const draftjsHandle = require('../../handler/draftjsHandle');
 
+const corsCheck = require('../../config/corsCheck');
+
+router.use(function (req, res, next) { //1
+    // if(req.headers.authorization){
+        if(corsCheck.checkAuth(req.headers.authorization)){
+            next();
+        }else{
+            res.send(`<h1>not Found Page</h1>`);
+        }
+    // }
+});
+
 router.get('/getpost/all', function (req, res) {
     let sql = `
         SELECT * FROM post WHERE post_isDeleted=0
