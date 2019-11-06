@@ -22,10 +22,38 @@ router.use(function (req, res, next) { //1
 
 router.get('/getpost/all', function (req, res) {
     let sql = `
-        SELECT * FROM post WHERE post_isDeleted=0
+        SELECT * FROM post 
+        JOIN user ON post.user_id=user.user_id
+        WHERE post_isDeleted=0
+        ORDER BY post_created DESC
     `;
     connect.query(sql, function (err, rows, fields) {
-        res.json(rows);
+        let result = [];
+        if(rows[0]){
+            for(let i = 0; i< rows.length; i++){
+                let data = {
+                    post_id:rows[i].post_id,
+                    shb_num: rows[i].shb_num,
+                    shb_item_id: rows[i].shb_item_id,
+                    parent_route: rows[i].parent_route,
+                    post_title: rows[i].post_title,
+                    post_desc: rows[i].post_title,
+                    post_thumbnail_url: rows[i].post_thumbnail_url,
+                    post_like_count: rows[i].post_like_count,
+                    post_comment_count: rows[i].post_comment_count,
+                    post_view_count: rows[i].post_view_count,
+                    post_image_count: rows[i].post_image_count,
+                    post_created: rows[i].post_created,
+                    post_updated: rows[i].post_updated,
+                    user_nickname: rows[i].user_nickname
+                }
+                result.push(data);
+            }
+            res.json({message:'success',data:result});
+        }else{
+            res.json({message:'none'});
+        }
+        
     });
 });
 
@@ -132,7 +160,7 @@ router.get('/getpost/one', function (req, res) {
 })
 
 router.get('/getpost/shbNum/all',function(req,res){
-    if(!req.query.startPostIndex && !req.query.currentPostIndex){
+    if(!req.query.hasBoundary){
         let sql = `
             SELECT post.*, user.user_nickname, shb_item.shb_item_name
             FROM post
@@ -146,6 +174,43 @@ router.get('/getpost/shbNum/all',function(req,res){
         connect.query(sql, params, function(err, rows, fields){
             let result = [];
             for (let i = 0; i < rows.length; i++) {
+                if (rows[i]) {
+                    result.push({
+                        post_id: rows[i].post_id,
+                        shb_num: rows[i].shb_num,
+                        shb_item_id: rows[i].shb_item_id,
+                        parent_route: rows[i].parent_route,
+                        post_title: rows[i].post_title,
+                        post_desc: rows[i].post_desc,
+                        post_thumbnail_url: rows[i].post_thumbnail_url,
+                        post_like_count: rows[i].post_like_count,
+                        post_comment_count: rows[i].post_comment_count,
+                        post_view_count: rows[i].post_view_count,
+                        post_image_count: rows[i].post_image_count,
+                        user_nickname: rows[i].user_nickname,
+                        post_created: rows[i].post_created,
+                        post_updated: rows[i].post_updated,
+                        shb_item_name: rows[i].shb_item_name,
+                        liked: 'off'
+                    });
+                }
+            }
+            return res.json(result);
+        });
+    }else{
+        let sql = `
+            SELECT post.*, user.user_nickname, shb_item.shb_item_name
+            FROM post
+            JOIN user ON post.user_id=user.user_id
+            JOIN shb_item ON shb_item.shb_item_id=post.shb_item_id
+            WHERE post.shb_num=? AND post_isDeleted=0
+            ORDER BY post.post_created DESC
+        `;
+        let params = [req.query.shb_num];
+
+        connect.query(sql, params, function(err, rows, fields){
+            let result = [];
+            for (let i = req.query.startPostIndex; i < req.query.currentPostIndex; i++) {
                 if (rows[i]) {
                     result.push({
                         post_id: rows[i].post_id,
@@ -307,6 +372,140 @@ router.post('/writepost/category', function (req, res) {
             });
         }
     });
+});
+
+router.post('/updatePost/category', function (req, res) {
+    // console.log(req.body.usid);
+    // console.log(req.body.shb_num);
+    // console.log(req.body.shb_item_id);
+    // console.log(req.body.post_id);
+    // console.log(req.body.post_title);
+    // console.log(req.body.post_desc);
+    if(req.body.usid===null){   //null or undefined
+        return res.json({ message: 'invalidUser' });
+    }
+    const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+    client.exists(sessID,(err,replyExists)=>{
+        if(replyExists){
+            client.get(sessID,(err,replyGet)=>{
+                const resultGet = JSON.parse(replyGet);
+                const user_id = resultGet.user.user_id;
+
+                //draftJS 포맷 형식으로만 파라미터를 설정해준다.
+                let post_image_count = draftjsHandle.getImageCount(req.body.post_desc); // 이미지 개수 계산
+                let post_thumbnail_url = draftjsHandle.getThumbnailUrl(req.body.post_desc); // 포스터의 첫번째 사진을 썸네일로 한다.
+
+                var sql = `
+                    UPDATE post 
+                    SET post_title=?,post_desc=?,post_thumbnail_url=?,post_image_count=?
+                    WHERE shb_num=? AND shb_item_id=? AND post_id=? AND user_id=?
+                `;
+                var params = [
+                    req.body.post_title,
+                    req.body.post_desc,
+                    post_thumbnail_url,
+                    post_image_count,
+                    req.body.shb_num,
+                    req.body.shb_item_id,
+                    req.body.post_id,
+                    user_id
+                ];
+                // const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress;
+                // const ip = requestip.getClientIp(req);
+
+                // console.log(ip);
+
+                connect.query(sql, params, function (err, rows, fields) {
+                    if (err) {
+                        res.status(201).json({ message: 'failure' });
+                    } else {
+                        // if (rows.insertId) {
+                        //     res.status(201).json({ message: 'success' });
+                        // } else {
+                        //     res.status(201).json({ message: 'failure' });
+                        // }
+                        if(rows.message)
+                            res.status(201).json({ message: 'success' });
+                    }
+                });
+            });
+        }
+    });
+});
+
+// poster 유저 유효성 검사
+
+router.post('/posterValidation/shb', function(req,res){
+    let sql = `
+        SELECT user_id FROM post 
+        WHERE post_id=? AND shb_num=?
+    `;
+    let params = [req.body.post_id, req.body.head_type];
+
+    connect.query(sql, params, function(err, postGet, fileds){
+        
+        if(postGet[0] && req.body.usid){
+            const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+
+            client.exists(sessID,(err,replyExists)=>{
+                if(replyExists){
+                    client.get(sessID,(err,replyGet)=>{
+                        const resultGet = JSON.parse(replyGet);
+                        const user_id = resultGet.user.user_id;
+                        if(user_id===postGet[0].user_id){
+                            res.send("valid");
+                        }else{
+                            res.send("invalid");
+                        }
+                    });
+                }
+            });
+            
+        }else{
+            res.send("error");
+        }
+        
+    });
+    
+});
+
+router.post('/deletePoster/shb/one', function(req,res){
+    let sql = `
+        SELECT user_id,post_id FROM post 
+        WHERE post_id=? AND shb_num=?
+    `;
+    let params = [req.body.post_id, req.body.head_type];
+
+    connect.query(sql, params, function(err, postGet, fileds){
+        if(postGet[0] && req.body.usid){
+            const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+    
+            client.exists(sessID,(err,replyExists)=>{
+                if(replyExists){
+                    client.get(sessID,(err,replyGet)=>{
+                        const resultGet = JSON.parse(replyGet);
+                        const user_id = resultGet.user.user_id;
+                        if(user_id===postGet[0].user_id){
+                            let sql = `
+                                UPDATE post SET post_isDeleted=1
+                                WHERE post_id=?
+                            `;
+                            let params = [postGet[0].post_id];
+
+                            connect.query(sql, params, function(err, rows, fields){
+                                res.send('success');
+                            });
+                        }else{
+                            res.send('error');
+                        }
+                    });
+                }else{
+                    res.send('error');
+                }
+            });
+        }
+    });
+    
 });
 
 module.exports = router;

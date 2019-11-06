@@ -69,10 +69,10 @@ router.get('/getshbOne',function(req,res){
             if(err){
                 res.json({message:'DBerror'});
             }else{
-                if(!rows){
-                    res.json({message:"failure"})
-                }else{
+                if(rows[0]){
                     res.json({message:'success', data:rows});
+                }else{
+                    res.json({message:"failure"});
                 }
             }
         });
@@ -105,10 +105,11 @@ router.get('/getshbItemAll', function(req,res){
 
 router.get('/shbItem/getOne', function(req,res){
     let sql = `
-        SELECT * FROM shb_item
-        WHERE shb_item_id=?
+        SELECT shb_item.*, shb.shb_name FROM shb_item
+        JOIN shb ON shb_item.shb_num=shb.shb_num
+        WHERE shb_item.shb_item_id=? AND shb_item.shb_num=?
     `;
-    let params = [req.query.shb_item_id];
+    let params = [req.query.shb_item_id, req.query.shb_num];
     connect.query(sql,params,function(err,rows,fields){
         if(err){
             console.log(err);

@@ -44,6 +44,8 @@ const postRoute = require(__dirname+'/api/routes/postRoute');
 
 const contactRoute = require(__dirname+'/api/routes/contactRoute');
 
+//베너
+const bannerRoute = require(__dirname+'/api/routes/bannerRoute');
 
 const univRoute = require(__dirname+'/api/routes/univRoute');
 const univ_itemRoute = require(__dirname+'/api/routes/univ_itemRoute');
@@ -60,12 +62,18 @@ const auth_userRoute = require(__dirname+'/api/routes/auth_userRoute');
 const get_userRoute = require(__dirname+'/api/routes/get_userRoute');
 const profileRoute = require(__dirname+'/api/routes/profileRoute');
 
+const adminRoute = require(__dirname+'/api/routes/adminRoute');
+const memberRoute = require(__dirname+'/api/routes/memberRoute');
+
 
 
 app.use('/api/shb',shbRoute);
 app.use('/api/shb/post', postRoute);
 
 app.use('/api/contact',contactRoute);
+
+//베너
+app.use('/api/banner',bannerRoute);
 
 app.use('/api/univ',univRoute);
 app.use('/api/univ_item',univ_itemRoute);
@@ -81,6 +89,13 @@ app.use('/api/auth/logout',logoutRoute);
 app.use('/api/auth/authentication',auth_userRoute);
 app.use('/api/auth/getuser',get_userRoute);
 app.use('/api/auth/profile',profileRoute);
+
+app.use('/api/auth/admin/',adminRoute);
+app.use('/api/auth/member/',memberRoute);
+
+app.get('/error',function(req,res){
+    res.send(`<h1>notFound</h1>`);
+})
 
 
 //Deploy Setting

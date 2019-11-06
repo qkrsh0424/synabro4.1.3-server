@@ -296,7 +296,7 @@ router.get('/:univ_id/btpost', function (req, res) {
         SELECT univ_post.*, user.user_nickname
         FROM univ_post 
         JOIN user ON univ_post.user_id=user.user_id 
-        WHERE univ_id=? AND post_type=?
+        WHERE univ_id=? AND post_type=? AND post_isDeleted=0
         ORDER BY post_created DESC
     `;
     var params = [req.params.univ_id, req.query.board_type];
@@ -425,7 +425,7 @@ router.get('/:univ_id', function (req, res) {
 
 
 router.post('/writePost', function (req, res) {
-    if(req.body.usid===undefined){
+    if(req.body.usid===null){   //null or undefined
         return res.json({ message: 'invalidUser' });
     }
     const sessID = 'sess:'+cipher.decrypt(req.body.usid);
@@ -508,6 +508,65 @@ router.post('/writePost', function (req, res) {
     // }
 });
 
+router.post('/updatePost', function (req, res) {
+            // console.log(req.body.usid);
+            // console.log(req.body.univ_id);
+            // console.log(req.body.post_type);
+            // console.log(req.body.post_id);
+            // console.log(req.body.post_topic);
+            // console.log(req.body.post_desc);
+    if(req.body.usid===null){   //null or undefined
+        return res.json({ message: 'invalidUser' });
+    }
+    const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+    client.exists(sessID,(err,replyExists)=>{
+        if(replyExists){
+            client.get(sessID,(err,replyGet)=>{
+                const resultGet = JSON.parse(replyGet);
+                const user_id = resultGet.user.user_id;
+
+                //draftJS 포맷 형식으로만 파라미터를 설정해준다.
+                let post_image_count = draftjsHandle.getImageCount(req.body.post_desc); // 이미지 개수 계산
+                let post_thumbnail_url = draftjsHandle.getThumbnailUrl(req.body.post_desc); // 포스터의 첫번째 사진을 썸네일로 한다.
+
+                var sql = `
+                    UPDATE univ_post 
+                    SET post_topic=?,post_desc=?,post_thumbnail_url=?,post_image_count=?
+                    WHERE univ_id=? AND post_type=? AND post_id=? AND user_id=?
+                `;
+                var params = [
+                    req.body.post_topic,
+                    req.body.post_desc,
+                    post_thumbnail_url,
+                    post_image_count,
+                    req.body.univ_id,
+                    req.body.post_type,
+                    req.body.post_id,
+                    user_id
+                ];
+                // const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress;
+                // const ip = requestip.getClientIp(req);
+
+                // console.log(ip);
+
+                connect.query(sql, params, function (err, rows, fields) {
+                    if (err) {
+                        res.status(201).json({ message: 'failure' });
+                    } else {
+                        // if (rows.insertId) {
+                        //     res.status(201).json({ message: 'success' });
+                        // } else {
+                        //     res.status(201).json({ message: 'failure' });
+                        // }
+                        if(rows.message)
+                            res.status(201).json({ message: 'success' });
+                    }
+                });
+            });
+        }
+    });
+});
+
 router.patch('/postCountPlus', function (req, res) {
     let sql = `
         UPDATE univ_post SET post_view_count=post_view_count+1 WHERE post_id=?
@@ -520,10 +579,74 @@ router.patch('/postCountPlus', function (req, res) {
 });
 
 router.post('/posterValidation/univ', function(req,res){
-    res.send({
-        data:`
-            <h1>hihi<h1>
-        `
+    let sql = `
+        SELECT user_id FROM univ_post 
+        WHERE post_id=? AND univ_id=?
+    `;
+    let params = [req.body.post_id, req.body.head_type];
+
+    connect.query(sql, params, function(err, postGet, fileds){
+        if(postGet[0] && req.body.usid){
+            const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+
+            client.exists(sessID,(err,replyExists)=>{
+                if(replyExists){
+                    client.get(sessID,(err,replyGet)=>{
+                        const resultGet = JSON.parse(replyGet);
+                        const user_id = resultGet.user.user_id;
+                        if(user_id===postGet[0].user_id){
+                            res.send("valid");
+                        }else{
+                            res.send("invalid");
+                        }
+                    });
+                }
+            });
+            
+        }else{
+            res.send("error");
+        }
+        
     });
-})
+    
+});
+
+router.post('/deletePoster/univ/one', function(req,res){
+    let sql = `
+        SELECT user_id,post_id FROM univ_post 
+        WHERE post_id=? AND univ_id=?
+    `;
+    let params = [req.body.post_id, req.body.head_type];
+
+    connect.query(sql, params, function(err, postGet, fileds){
+        if(postGet[0] && req.body.usid){
+            const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+    
+            client.exists(sessID,(err,replyExists)=>{
+                if(replyExists){
+                    client.get(sessID,(err,replyGet)=>{
+                        const resultGet = JSON.parse(replyGet);
+                        const user_id = resultGet.user.user_id;
+                        if(user_id===postGet[0].user_id){
+                            let sql = `
+                                UPDATE univ_post SET post_isDeleted=1
+                                WHERE post_id=?
+                            `;
+                            let params = [postGet[0].post_id];
+
+                            connect.query(sql, params, function(err, rows, fields){
+                                res.send('success');
+                            });
+                        }else{
+                            res.send('error');
+                        }
+                    });
+                }else{
+                    res.send('error');
+                }
+            });
+        }
+    });
+    
+});
 module.exports = router;

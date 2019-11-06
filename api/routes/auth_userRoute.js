@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express();
 const cipher = require('../../handler/security');
+const connect = require('../../database/database');
+
 var redis = require('redis'),
     client = redis.createClient();
 
@@ -15,6 +17,36 @@ router.use(function (req, res, next) { //1
         }
     // }
 });
+
+router.post('/memberCheck',function(req,res){
+
+    if(req.body.usid!==null){
+        const sessID = 'sess:'+cipher.decrypt(req.body.usid);
+        client.exists(sessID,(err, replyExists)=>{
+            if(replyExists){
+                client.get(sessID,(err,replyGet)=>{
+                    result = JSON.parse(replyGet);
+                    const user_id = result.user.user_id;
+                    let sql = `
+                        SELECT * FROM member_of_group WHERE user_id=? AND head_type=?
+                    `;
+                    let params = [user_id, req.body.head_type];
+                    connect.query(sql, params, function(err, rows, fields){
+                        if(rows[0]){
+                            res.json({message:'valid'});
+                        }else{
+                            res.json({message:'invalid'});
+                        }
+                    });
+                });
+            }else{
+                res.status(200).json({message:'invalid'})
+            }
+        })
+    }else{
+        res.status(200).json({message:'invalid'})
+    }
+})
     
 router.post('/',function(req,res){
     // let keykey = 'fnolUuyMpLC03toHAVLpmvEUJLRBQI6Q'

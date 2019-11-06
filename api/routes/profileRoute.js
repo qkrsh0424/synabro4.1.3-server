@@ -321,6 +321,7 @@ router.get('/mypostlist/univ',function(req,res){
                     JOIN univ ON univ_post.univ_id=univ.univ_id
                     JOIN univ_item ON univ_post.post_type=univ_item.univ_item_address
                     WHERE univ_post.user_id=? AND univ.univ_id=univ_item.univ_id AND univ_post.post_isDeleted=0
+                    ORDER BY univ_post.post_created DESC
                 `;
                 let params = [user_id];
                 connect.query(sql, params, function(err, rows, fields){
@@ -415,6 +416,7 @@ router.get('/mypostlist/shb',function(req,res){
                     JOIN shb ON post.shb_num=shb.shb_num
                     JOIN shb_item ON post.shb_item_id=shb_item.shb_item_id
                     WHERE post.user_id=? AND shb.shb_num=shb_item.shb_num AND post.post_isDeleted=0
+                    ORDER BY post.post_created DESC
                 `;
                 let params = [user_id];
                 connect.query(sql, params, function(err, rows, fields){

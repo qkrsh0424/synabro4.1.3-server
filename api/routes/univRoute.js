@@ -18,7 +18,12 @@ router.get('/', function (req, res) {
         var sql = 'SELECT * FROM univ WHERE univ_id=?';
         var params = [req.query.selectedIndex];
         connect.query(sql, params, function (err, rows, fields) {
-            res.send(rows[0]);
+            if(rows[0]){
+                res.send({message:'success',data:rows[0]});
+            }else{
+                res.send({message:'error'});
+            }
+            
         })
     } else {
         var sql = 'SELECT * FROM univ';

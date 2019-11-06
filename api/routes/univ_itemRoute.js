@@ -16,10 +16,19 @@ router.use(function (req, res, next) { //1
 
 router.get('/:univ_id', function (req, res) {
     if (req.query.board_type) {
-        var sql = 'SELECT * FROM univ_item WHERE univ_id=? AND univ_item_address=?';
+        var sql = `
+            SELECT univ_item.*, univ.univ_title FROM univ_item 
+            JOIN univ ON univ_item.univ_id=univ.univ_id 
+            WHERE univ_item.univ_id=? AND univ_item.univ_item_address=?
+        `;
         var params = [req.params.univ_id, req.query.board_type];
         connect.query(sql, params, function (err, rows, fields) {
-            res.send(rows[0]);
+            if(rows[0]){
+                res.send(rows[0]);
+            }else{
+                res.send('error');
+            }
+            
         })
     } else {
         var sql = 'SELECT * FROM univ_item WHERE univ_id=? ORDER BY univ_item_order';
