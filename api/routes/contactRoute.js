@@ -32,7 +32,7 @@ router.get('/get_search_contact', function(req,res){
 
     if (req.query.writeData) {
       var data = '%'+ decodeURIComponent(req.query.writeData.toString()) + '%';
-      console.log(decodeURIComponent(req.query.writeData.toString()));
+      // console.log(decodeURIComponent(req.query.writeData.toString()));
       
       var sql ="SELECT * FROM `contact` WHERE contact_name LIKE ? OR company LIKE ? OR Tel LIKE ? OR wechat_id LIKE ? OR category LIKE ? AND contact_isDeleted=0 ORDER BY contact_created DESC";
       var params = [
