@@ -62,6 +62,9 @@ const auth_userRoute = require(__dirname+'/api/routes/auth_userRoute');
 const get_userRoute = require(__dirname+'/api/routes/get_userRoute');
 const profileRoute = require(__dirname+'/api/routes/profileRoute');
 
+//Utill
+const mainSearchRoute = require(__dirname+'/api/routes/mainSearchRoute');
+
 const adminRoute = require(__dirname+'/api/routes/adminRoute');
 const memberRoute = require(__dirname+'/api/routes/memberRoute');
 
@@ -93,13 +96,15 @@ app.use('/api/auth/profile',profileRoute);
 app.use('/api/auth/admin/',adminRoute);
 app.use('/api/auth/member/',memberRoute);
 
+app.use('/api/utill/mainSearch', mainSearchRoute);
+
 app.get('/error',function(req,res){
     res.send(`<h1>notFound</h1>`);
 })
 
 
 //Deploy Setting
-// app.use(express.static(path.join(__dirname, "../client/build")));
+app.use(express.static(path.join(__dirname, "../client/build")));
 
 // app.get('/*',function(req,res){
 //     res.sendFile(path.join(__dirname, "../client/build", "index.html"));

@@ -45,7 +45,9 @@ router.get('/getpost/all', function (req, res) {
                     post_image_count: rows[i].post_image_count,
                     post_created: rows[i].post_created,
                     post_updated: rows[i].post_updated,
-                    user_nickname: rows[i].user_nickname
+                    user_nickname: rows[i].user_nickname,
+                    post_isSecret: rows[i].post_isSecret,
+                    post_user_isSecret: rows[i].post_user_isSecret,
                 }
                 result.push(data);
             }
@@ -82,6 +84,8 @@ router.get('/getpost/one', function (req, res) {
                     post_view_count: rowsPost[0].post_view_count,
                     post_image_count: rowsPost[0].post_image_count,
                     user_nickname: rowsPost[0].user_nickname,
+                    post_isSecret: rowsPost[0].post_isSecret,
+                    post_user_isSecret: rowsPost[0].post_user_isSecret,
                     post_created: rowsPost[0].post_created,
                     post_updated: rowsPost[0].post_updated,
                     liked: 'off'
@@ -121,6 +125,8 @@ router.get('/getpost/one', function (req, res) {
                                         post_view_count: rowsPost[0].post_view_count,
                                         post_image_count: rowsPost[0].post_image_count,
                                         user_nickname: rowsPost[0].user_nickname,
+                                        post_isSecret: rowsPost[0].post_isSecret,
+                                        post_user_isSecret: rowsPost[0].post_user_isSecret,
                                         post_created: rowsPost[0].post_created,
                                         post_updated: rowsPost[0].post_updated,
                                         like: 'on',
@@ -140,6 +146,8 @@ router.get('/getpost/one', function (req, res) {
                                         post_view_count: rowsPost[0].post_view_count,
                                         post_image_count: rowsPost[0].post_image_count,
                                         user_nickname: rowsPost[0].user_nickname,
+                                        post_isSecret: rowsPost[0].post_isSecret,
+                                        post_user_isSecret: rowsPost[0].post_user_isSecret,
                                         post_created: rowsPost[0].post_created,
                                         post_updated: rowsPost[0].post_updated,
                                         like: 'off',
@@ -188,6 +196,8 @@ router.get('/getpost/shbNum/all',function(req,res){
                         post_view_count: rows[i].post_view_count,
                         post_image_count: rows[i].post_image_count,
                         user_nickname: rows[i].user_nickname,
+                        post_isSecret: rows[i].post_isSecret,
+                        post_user_isSecret: rows[i].post_user_isSecret,
                         post_created: rows[i].post_created,
                         post_updated: rows[i].post_updated,
                         shb_item_name: rows[i].shb_item_name,
@@ -225,6 +235,8 @@ router.get('/getpost/shbNum/all',function(req,res){
                         post_view_count: rows[i].post_view_count,
                         post_image_count: rows[i].post_image_count,
                         user_nickname: rows[i].user_nickname,
+                        post_isSecret: rows[i].post_isSecret,
+                        post_user_isSecret: rows[i].post_user_isSecret,
                         post_created: rows[i].post_created,
                         post_updated: rows[i].post_updated,
                         shb_item_name: rows[i].shb_item_name,
@@ -268,6 +280,8 @@ router.get('/getpost/category/all', function (req, res) {
                         post_view_count: rows[i].post_view_count,
                         post_image_count: rows[i].post_image_count,
                         user_nickname: rows[i].user_nickname,
+                        post_isSecret: rows[i].post_isSecret,
+                        post_user_isSecret: rows[i].post_user_isSecret,
                         post_created: rows[i].post_created,
                         post_updated: rows[i].post_updated,
                         liked: 'off'
@@ -310,6 +324,8 @@ router.get('/getpost/category/all', function (req, res) {
                                     post_view_count: rows[i].post_view_count,
                                     post_image_count: rows[i].post_image_count,
                                     user_nickname: rows[i].user_nickname,
+                                    post_isSecret: rows[i].post_isSecret,
+                                    post_user_isSecret: rows[i].post_user_isSecret,
                                     post_created: rows[i].post_created,
                                     post_updated: rows[i].post_updated,
                                     liked: liked

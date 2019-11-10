@@ -440,6 +440,8 @@ router.get('/mypostlist/shb',function(req,res){
                                     post_like_count:rows[i].post_like_count,
                                     post_created:rows[i].post_created,
                                     user_nickname:rows[i].user_nickname,
+                                    post_isSecret:rows[i].post_isSecret,
+                                    post_user_isSecret:rows[i].post_user_isSecret,
                                     shb_name:rows[i].shb_name,
                                     shb_item_name:rows[i].shb_item_name
                                 }

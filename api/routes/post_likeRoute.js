@@ -26,7 +26,7 @@ router.get('/get_list/shb', function(req,res){
                 let resultGet = JSON.parse(replyGet);
                 let user_id = resultGet.user.user_id;
                 var sql = `
-                    SELECT post.post_id, post.parent_route, post.shb_num, post.shb_item_id, post.post_title,
+                    SELECT post.post_id, post.parent_route, post.shb_num, post.shb_item_id, post.post_title, post.post_user_isSecret,
                         user.user_nickname 
                     FROM post_like
                     JOIN post ON post.post_id=post_like.post_id

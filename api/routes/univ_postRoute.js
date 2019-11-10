@@ -221,7 +221,7 @@ router.get("/search/all", function (req, res) {
 });
 
 router.get("/search/univ/:univ_id", function (req, res) {
-    console.log(req.query.writeData);
+    // console.log(req.query.writeData);
 
     if (req.query.writeData) {
         var data = '%' + decodeURIComponent(req.query.writeData.toString()) + '%';
