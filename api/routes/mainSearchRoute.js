@@ -58,6 +58,8 @@ router.get("/search/shb", function (req, res) {
                         post_like_count:rows[i].post_like_count,
                         post_created:rows[i].post_created,
                         user_nickname:rows[i].user_nickname,
+                        post_isSecret:rows[i].post_isSecret,
+                        post_user_isSecret:rows[i].post_user_isSecret,
                         parent_route: rows[i].parent_route
                     }
                     result.push(data);

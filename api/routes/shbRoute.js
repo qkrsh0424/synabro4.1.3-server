@@ -14,6 +14,22 @@ router.use(function (req, res, next) { //1
     // }
 });
 
+router.get('/getParentRoute/all', function(req,res){
+    let sql = `
+        SELECT * FROM parent_route
+        WHERE route_isDeleted=0 AND parent_route!=?
+    `;
+    let params = ['main'];
+    connect.query(sql,params,function(err,rows,fields){
+        if(rows[0]){
+            res.json({message:'success',data:rows});
+        }else{
+            res.json({message:'failure'});
+        }
+        
+    });
+});
+
 router.get('/getshbAll',function(req,res){
     if(req.query.type){
         let sql = `

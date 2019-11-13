@@ -524,4 +524,15 @@ router.post('/deletePoster/shb/one', function(req,res){
     
 });
 
+router.post('/postCount/plus', function (req, res) {
+    let sql = `
+        UPDATE post SET post_view_count=post_view_count+1 WHERE post_id=?
+    `;
+    let params = [req.body.post_id];
+    // console.log(req.body.post_id);
+    connect.query(sql, params, function (err, rows, fields) {
+        res.json({ message: 'postCountUpdateOK' });
+    })
+});
+
 module.exports = router;
