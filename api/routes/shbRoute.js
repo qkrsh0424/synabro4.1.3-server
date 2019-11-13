@@ -18,6 +18,7 @@ router.get('/getParentRoute/all', function(req,res){
     let sql = `
         SELECT * FROM parent_route
         WHERE route_isDeleted=0 AND parent_route!=?
+        ORDER BY route_order
     `;
     let params = ['main'];
     connect.query(sql,params,function(err,rows,fields){
