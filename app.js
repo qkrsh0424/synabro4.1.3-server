@@ -103,7 +103,7 @@ app.get('/error',function(req,res){
 })
 
 
-//Deploy Setting
+// Deploy Setting
 // app.use(express.static(path.join(__dirname, "../client/build")));
 
 // app.get('/*',function(req,res){

@@ -245,7 +245,7 @@ router.get('/post_comment/get/all',function(req,res){
         FROM comment
         JOIN user ON comment.user_id=user.user_id
         WHERE comment.post_id=? AND cmt_isDeleted=0
-        ORDER BY comment.cmt_created DESC
+        ORDER BY comment.cmt_created
     `;
     let params = [req.query.post_id];
 
