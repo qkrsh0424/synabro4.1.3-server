@@ -86,6 +86,7 @@ router.get('/getpost/one', function (req, res) {
                     user_nickname: rowsPost[0].user_nickname,
                     post_isSecret: rowsPost[0].post_isSecret,
                     post_user_isSecret: rowsPost[0].post_user_isSecret,
+                    post_materials: JSON.parse(rowsPost[0].post_materials),
                     post_created: rowsPost[0].post_created,
                     post_updated: rowsPost[0].post_updated,
                     liked: 'off'
@@ -127,6 +128,7 @@ router.get('/getpost/one', function (req, res) {
                                         user_nickname: rowsPost[0].user_nickname,
                                         post_isSecret: rowsPost[0].post_isSecret,
                                         post_user_isSecret: rowsPost[0].post_user_isSecret,
+                                        post_materials:JSON.parse(rowsPost[0].post_materials),
                                         post_created: rowsPost[0].post_created,
                                         post_updated: rowsPost[0].post_updated,
                                         like: 'on',
@@ -148,6 +150,7 @@ router.get('/getpost/one', function (req, res) {
                                         user_nickname: rowsPost[0].user_nickname,
                                         post_isSecret: rowsPost[0].post_isSecret,
                                         post_user_isSecret: rowsPost[0].post_user_isSecret,
+                                        post_materials:JSON.parse(rowsPost[0].post_materials),
                                         post_created: rowsPost[0].post_created,
                                         post_updated: rowsPost[0].post_updated,
                                         like: 'off',
@@ -357,11 +360,17 @@ router.post('/writepost/category', function (req, res) {
                 //draftJS 포맷 형식으로만 파라미터를 설정해준다.
                 let post_image_count = draftjsHandle.getImageCount(req.body.post_desc); // 이미지 개수 계산
                 let post_thumbnail_url = draftjsHandle.getThumbnailUrl(req.body.post_desc); // 포스터의 첫번째 사진을 썸네일로 한다.
+                let post_materials = null;
+                if(req.body.post_materials[0]){
+                    post_materials = JSON.stringify(req.body.post_materials);
+                }
+                // var sql = `INSERT INTO post(shb_num, shb_item_id, parent_route, post_title, post_desc, post_thumbnail_url, post_image_count, user_id)
+                //         VALUES(?,?,?,?,?,?,?,?)
+                // `;
 
-                var sql = `INSERT INTO post(shb_num, shb_item_id, parent_route, post_title, post_desc, post_thumbnail_url, post_image_count, user_id)
-                        VALUES(?,?,?,?,?,?,?,?)
+                var sql = `INSERT INTO post(shb_num, shb_item_id, parent_route, post_title, post_desc, post_thumbnail_url, post_image_count, user_id, post_materials)
+                        VALUES(?,?,?,?,?,?,?,?,?)
                 `;
-
                 var params = [
                     req.body.shb_num,
                     req.body.shb_item_id,
@@ -370,7 +379,8 @@ router.post('/writepost/category', function (req, res) {
                     req.body.post_desc,
                     post_thumbnail_url,
                     post_image_count,
-                    user_id
+                    user_id,
+                    post_materials
                 ];
 
                 connect.query(sql, params, function (err, rows, fields) {
@@ -413,7 +423,7 @@ router.post('/updatePost/category', function (req, res) {
 
                 var sql = `
                     UPDATE post 
-                    SET post_title=?,post_desc=?,post_thumbnail_url=?,post_image_count=?
+                    SET post_title=?,post_desc=?,post_thumbnail_url=?,post_image_count=?, post_materials=?
                     WHERE shb_num=? AND shb_item_id=? AND post_id=? AND user_id=?
                 `;
                 var params = [
@@ -421,6 +431,7 @@ router.post('/updatePost/category', function (req, res) {
                     req.body.post_desc,
                     post_thumbnail_url,
                     post_image_count,
+                    JSON.stringify(req.body.post_materials),
                     req.body.shb_num,
                     req.body.shb_item_id,
                     req.body.post_id,

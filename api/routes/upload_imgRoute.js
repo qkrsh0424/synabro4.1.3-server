@@ -126,16 +126,59 @@ router.post('/draft-oss', async(req,res)=>{
             res.json(result);
         }
     }
-    
-    
-    
-    
-
-    
-    // // console.log(resultData.res.requestUrls[0]);
-    
 });
 
+router.post('/draft-oss/file/upload', async(req,res)=>{
+    let ossDirectory = 'commonFiles/';
+    // console.log(req.files.commonfile.name);
+    if(req.files){
+        if(req.files.commonfile.length){
+            let resultDataUrlAll = [];
+            for(let i=0; i<req.files.commonfile.length;i++){
+                let fileName = ossDirectory+Date.now()+'-'+String(i)+'-'+req.files.commonfile[i].name;
+                await client.put(fileName, req.files.commonfile[i].data);
+                let resultData = await client.get(fileName);
+                resultDataUrlAll.push({name:req.files.commonfile[i].name,url:resultData.res.requestUrls[0]});
+            }
+            // console.log(resultDataUrlAll);
+            if(resultDataUrlAll.length===req.files.commonfile.length){
+                let result = {
+                    message:'successMultiple',
+                    url: resultDataUrlAll.url,
+                    file:resultDataUrlAll,
+                    dataLength: resultDataUrlAll.length
+                }
+                return res.json(result);
+            }else{
+                let result ={
+                    message:'failure'
+                }
+                return res.json(result);
+            }
+        }else{
+            let fileName = ossDirectory+Date.now()+req.files.commonfile.name; 
+            await client.put(fileName, req.files.commonfile.data);
+            let resultData = await client.get(fileName);
+            if(resultData){
+                let result ={
+                    message:'successOne',
+                    // url:"https://ddpf5wamlzit3.cloudfront.net/posterImg/" + req.file.key
+                    file:{name:req.files.commonfile.name, url:resultData.res.requestUrls[0]},
+                    url: resultData.res.requestUrls[0]
+                }
+                return res.json(result);
+            }else{
+                let result ={
+                    message:'failure'
+                }
+                return res.json(result);
+            }
+        }
+    }else{
+        return res.json({message:'maybeEmpty'})
+    }
+    
+})
 // router.post('/draft/submit',function(req,res){
 //     console.log(req.body.data);
 //     res.send(req.body.data);
