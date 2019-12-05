@@ -71,6 +71,7 @@ router.post('/group/members/all', function(req,res){
                     UserMajor:rows[i].user_major,
                     UserEmail:cipher.decrypt(rows[i].user_email),
                     UserGender:rows[i].user_gender,
+                    MemberId : rows[i].member_id
                 }
                 result.push(data);
             }
@@ -156,8 +157,6 @@ router.post('/group/confirmApply', function(req,res){
 });
 
 router.post('/group/rejectApply', function(req,res){
-
-
     let sql = `
         SELECT * FROM member_apply
         WHERE head_type=? AND memap_apply_id=?
@@ -180,5 +179,55 @@ router.post('/group/rejectApply', function(req,res){
             res.json({message:'error'});
         }
     });
+});
+
+router.post('/group/deleteMember/one', function(req,res){
+    // console.log(req.body.head_type,req.body.member_id);
+    let sql = `
+        UPDATE member_of_group 
+        SET member_isDeleted=1 
+        WHERE head_type=? AND member_id=?
+    `;
+    let params = [req.body.head_type,req.body.member_id];
+    connect.query(sql, params, function(err,rows,fields){
+        let sql = `
+            UPDATE member_apply
+            JOIN member_of_group
+            ON member_apply.user_id=member_of_group.user_id
+            SET memap_isDeleted=3 
+            WHERE member_apply.head_type=? AND member_of_group.member_id=?
+        `;
+        let params = [req.body.head_type, req.body.member_id];
+        connect.query(sql, params, function(err,rows2){
+            if(rows.affectedRows===0 || rows2.affectedRows===0){
+                return res.json({message:'invalid'});
+            }else{
+                return res.json({message:'success'});
+            }
+        })
+        
+    });
+    // let sql = `
+    //     SELECT * FROM member_apply
+    //     WHERE head_type=? AND memap_apply_id=?
+    // `;
+    // let params = [req.body.head_type, req.body.applicantId];
+    // connect.query(sql, params, function(err, applicantUser ,fields){
+    //     if(applicantUser[0]){
+    //         let sql = `
+    //             UPDATE member_apply SET memap_isDeleted=2 WHERE memap_apply_id=?
+    //         `;
+    //         let params = [applicantUser[0].memap_apply_id];
+    //         connect.query(sql, params, function(err, result, fields){
+    //             if(result){
+    //                 res.json({message:'success'});
+    //             }else{
+    //                 res.json({message:'error'});        
+    //             }
+    //         })
+    //     }else{
+    //         res.json({message:'error'});
+    //     }
+    // });
 });
 module.exports = router;

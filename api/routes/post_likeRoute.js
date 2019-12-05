@@ -32,6 +32,7 @@ router.get('/get_list/shb', function(req,res){
                     JOIN post ON post.post_id=post_like.post_id
                     JOIN user ON post.user_id=user.user_id
                     WHERE post_like.user_id=?
+                    ORDER BY likedAt DESC
                 `;
                 var params = [user_id];
 

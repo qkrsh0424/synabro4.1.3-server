@@ -28,7 +28,7 @@ router.post('/memberCheck',function(req,res){
                     result = JSON.parse(replyGet);
                     const user_id = result.user.user_id;
                     let sql = `
-                        SELECT * FROM member_of_group WHERE user_id=? AND head_type=?
+                        SELECT * FROM member_of_group WHERE user_id=? AND head_type=? AND member_isDeleted=0
                     `;
                     let params = [user_id, req.body.head_type];
                     connect.query(sql, params, function(err, rows, fields){

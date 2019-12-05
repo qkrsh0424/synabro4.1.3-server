@@ -65,11 +65,15 @@ const profileRoute = require(__dirname+'/api/routes/profileRoute');
 //Utill
 const mainSearchRoute = require(__dirname+'/api/routes/mainSearchRoute');
 
+//admin and member
 const adminRoute = require(__dirname+'/api/routes/adminRoute');
 const memberRoute = require(__dirname+'/api/routes/memberRoute');
 
+//render
+const appItemsRender = require(__dirname+'/api/renders/appItems');
 
 
+//API start
 app.use('/api/shb',shbRoute);
 app.use('/api/shb/post', postRoute);
 
@@ -97,7 +101,11 @@ app.use('/api/auth/admin/',adminRoute);
 app.use('/api/auth/member/',memberRoute);
 
 app.use('/api/utill/mainSearch', mainSearchRoute);
+//API end
 
+//Render Start
+app.use('/render/appItems', appItemsRender);
+//Render End
 app.get('/error',function(req,res){
     res.send(`<h1>notFound</h1>`);
 })

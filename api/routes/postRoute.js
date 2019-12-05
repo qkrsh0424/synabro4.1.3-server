@@ -21,13 +21,19 @@ router.use(function (req, res, next) { //1
 });
 
 router.get('/getpost/all', function (req, res) {
+    // console.log(req.query.numIndex);
+    let getLimit = Number(req.query.numIndex);
+    // console.log(getLimit);
     let sql = `
         SELECT * FROM post 
         JOIN user ON post.user_id=user.user_id
         WHERE post_isDeleted=0
         ORDER BY post_created DESC
+        LIMIT ?
     `;
-    connect.query(sql, function (err, rows, fields) {
+    
+    let params = [getLimit];
+    connect.query(sql, params, function (err, rows, fields) {
         let result = [];
         if(rows[0]){
             for(let i = 0; i< rows.length; i++){
