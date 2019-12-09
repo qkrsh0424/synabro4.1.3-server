@@ -230,4 +230,194 @@ router.post('/group/deleteMember/one', function(req,res){
     //     }
     // });
 });
+
+router.post('/category/header/updateName', function(req,res){
+    // console.log(req.body.targetId);
+    // console.log(req.body.targetName);
+    let sql = `
+        UPDATE shb_item_header 
+        SET sih_name = ?
+        WHERE sih_id = ?
+    `;
+
+    let params = [req.body.targetName,req.body.targetId]
+    connect.query(sql, params, function(err,rows){
+        res.json({message:'success'});
+    });
+});
+
+router.post('/category/header/delete/one', function(req,res){
+    // console.log(req.body.targetId);
+    // console.log(req.body.targetName);
+    let sql = `
+        UPDATE shb_item_header 
+        SET sih_isDeleted = 1
+        WHERE sih_id = ?
+    `;
+
+    let params = [req.body.targetId]
+    connect.query(sql, params, function(err,rows){
+        res.json({message:'success'});
+    });
+});
+
+router.post('/category/header/add/one', function(req,res){
+    let sql = `
+        INSERT INTO shb_item_header(shb_num, sih_name, parent_route)
+        VALUES(?,?,?)
+    `;
+
+    let params = [req.body.head_type,req.body.sih_name, req.body.parent_route]
+    connect.query(sql, params, function(err,rows){
+        if(err){
+            console.log(err);
+            return res.json({message:'error'})
+        }
+        return res.json({message:'success'});
+    });
+});
+
+router.post('/category/header/arraySet', function(req,res){
+    // console.log(req.body.visibleArray);
+    // console.log(req.body.invisibleArray);
+
+    //visibleArrayPart
+    for(let i = 0; i< req.body.visibleArray.length; i++){
+        let sql = `
+            UPDATE shb_item_header
+            SET sih_visible=1, sih_order=?
+            WHERE sih_id=?
+        `;
+        let params=[i,req.body.visibleArray[i].sih_id];
+        connect.query(sql, params, function(err,rows){
+            if(err){
+                console.log(err);
+                return res.json({message:'error'});
+            }
+        })
+    }
+
+    //invisibleArrayPart
+    for(let i = 0; i< req.body.invisibleArray.length; i++){
+        let sql = `
+            UPDATE shb_item_header
+            SET sih_visible=0, sih_order = NULL
+            WHERE sih_id=?
+        `;
+        let params=[req.body.invisibleArray[i].sih_id];
+        connect.query(sql, params, function(err,rows){
+            if(err){
+                console.log(err);
+                return res.json({message:'error'});
+            }
+            let sql = `
+                UPDATE shb_item
+                SET shb_item_visible=0, shb_item_order = NULL
+                WHERE parent_header=?
+            `;
+            let params=[req.body.invisibleArray[i].sih_id];
+            connect.query(sql, params, function(err, rows2){
+                if(err){
+                    console.log(err);
+                    return res.json({message:'error'});
+                }
+            })
+        })
+    }
+    return res.json({message:'success'});
+});
+
+router.post('/category/sub/updateName', function(req,res){
+    // console.log(req.body.targetId);
+    // console.log(req.body.targetName);
+    let sql = `
+        UPDATE shb_item
+        SET shb_item_name = ?
+        WHERE shb_item_id = ?
+    `;
+
+    let params = [req.body.targetName,req.body.targetId]
+    connect.query(sql, params, function(err,rows){
+        if(err){
+            console.log(err);
+            return res.json({message:'error'});
+        }
+        return res.json({message:'success'});
+    });
+});
+
+router.post('/category/sub/delete/one', function(req,res){
+    // console.log(req.body.targetId);
+    // console.log(req.body.targetName);
+    let sql = `
+        UPDATE shb_item 
+        SET shb_item_isDeleted = 1
+        WHERE shb_item_id = ?
+    `;
+
+    let params = [req.body.targetId]
+    connect.query(sql, params, function(err,rows){
+        if(err){
+            console.log(err);
+            return res.json({message:'error'});
+        }
+        return res.json({message:'success'});
+    });
+});
+
+router.post('/category/sub/add/one', function(req,res){
+    const headerItem = req.body.headerItem;
+    const newName = req.body.newName;
+    const itemClassify = 'board';
+    let sql = `
+        INSERT INTO shb_item(shb_item_name, shb_item_classify, shb_num, parent_route, parent_header)
+        VALUES(?,?,?,?,?)
+    `;
+    let params = [newName, itemClassify, headerItem.shb_num, headerItem.parent_route, headerItem.sih_id];
+    connect.query(sql, params, function(err, rows){
+        if(err){
+            return res.json({message:'error'});
+        }
+        return res.json({message:'success'});
+    })
+    
+});
+
+router.post('/category/sub/arraySet', function(req,res){
+    // console.log(req.body.visibleArray);
+    // console.log(req.body.invisibleArray);
+
+    //visibleArrayPart
+    for(let i = 0; i< req.body.visibleArray.length; i++){
+        let sql = `
+            UPDATE shb_item
+            SET shb_item_visible=1, shb_item_order=?
+            WHERE shb_item_id=?
+        `;
+        let params=[i,req.body.visibleArray[i].shb_item_id];
+        connect.query(sql, params, function(err,rows){
+            if(err){
+                console.log(err);
+                return res.json({message:'error'});
+            }
+        })
+    }
+
+    //invisibleArrayPart
+    for(let i = 0; i< req.body.invisibleArray.length; i++){
+        let sql = `
+            UPDATE shb_item
+            SET shb_item_visible=0, shb_item_order = NULL
+            WHERE shb_item_id=?
+        `;
+        let params=[req.body.invisibleArray[i].shb_item_id];
+        connect.query(sql, params, function(err,rows){
+            if(err){
+                console.log(err);
+                return res.json({message:'error'});
+            }
+        })
+    }
+    return res.json({message:'success'});
+});
 module.exports = router;

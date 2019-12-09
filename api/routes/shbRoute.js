@@ -96,12 +96,36 @@ router.get('/getshbOne',function(req,res){
     
 });
 
+router.get('/getshbItemHeader/all', function(req,res){
+    const shb_num = req.query.shb_num;
+    let sql = `
+        SELECT * FROM shb_item_header
+        WHERE sih_isDeleted=0 AND shb_num=?
+        ORDER BY ISNULL(sih_order) ASC, sih_order ASC
+    `;
+    let params = [shb_num];
+
+    connect.query(sql, params, function(err, rows, fields){
+        if(err){
+            console.log(err)
+            res.json({message:'DBerror'});
+        }else{
+            if(rows[0]){
+                res.json({message:'success', data:rows});
+            }else{
+                res.json({message:'failure'});
+            }
+            
+        }
+    });
+});
+
 router.get('/getshbItemAll', function(req,res){
     const shb_num = req.query.shb_num;
     let sql = `
         SELECT * FROM shb_item
         WHERE shb_item_isDeleted=0 AND shb_num=?
-        ORDER BY shb_item_order
+        ORDER BY ISNULL(shb_item_order) ASC, shb_item_order ASC
     `;
     let params = [shb_num];
 

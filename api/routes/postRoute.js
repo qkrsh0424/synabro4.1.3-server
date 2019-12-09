@@ -27,7 +27,8 @@ router.get('/getpost/all', function (req, res) {
     let sql = `
         SELECT * FROM post 
         JOIN user ON post.user_id=user.user_id
-        WHERE post_isDeleted=0
+        JOIN shb_item ON post.shb_item_id=shb_item.shb_item_id
+        WHERE post_isDeleted=0 AND shb_item.shb_item_visible=1
         ORDER BY post_created DESC
         LIMIT ?
     `;
@@ -69,7 +70,8 @@ router.get('/getpost/one', function (req, res) {
     let sql = `
         SELECT post.*, user.user_nickname FROM post 
         JOIN user ON post.user_id=user.user_id
-        WHERE post.post_id=? AND post.post_isDeleted=0`;
+        JOIN shb_item ON post.shb_item_id=shb_item.shb_item_id
+        WHERE post.post_id=? AND post.post_isDeleted=0 AND shb_item.shb_item_visible=1`;
     let params = [req.query.post_id];
 
     connect.query(sql, params, function (err, rowsPost) {
@@ -183,7 +185,7 @@ router.get('/getpost/shbNum/all',function(req,res){
             FROM post
             JOIN user ON post.user_id=user.user_id
             JOIN shb_item ON shb_item.shb_item_id=post.shb_item_id
-            WHERE post.shb_num=? AND post_isDeleted=0
+            WHERE post.shb_num=? AND post_isDeleted=0 AND shb_item.shb_item_visible=1
             ORDER BY post.post_created DESC
         `;
         let params = [req.query.shb_num];
@@ -222,7 +224,7 @@ router.get('/getpost/shbNum/all',function(req,res){
             FROM post
             JOIN user ON post.user_id=user.user_id
             JOIN shb_item ON shb_item.shb_item_id=post.shb_item_id
-            WHERE post.shb_num=? AND post_isDeleted=0
+            WHERE post.shb_num=? AND post_isDeleted=0 AND shb_item.shb_item_visible=1
             ORDER BY post.post_created DESC
         `;
         let params = [req.query.shb_num];
@@ -265,7 +267,8 @@ router.get('/getpost/category/all', function (req, res) {
         SELECT post.*, user.user_nickname
         FROM post
         JOIN user ON post.user_id=user.user_id
-        WHERE post.shb_num=? AND post.shb_item_id=? AND post_isDeleted=0
+        JOIN shb_item ON shb_item.shb_item_id=post.shb_item_id
+        WHERE post.shb_num=? AND post.shb_item_id=? AND post_isDeleted=0 AND shb_item.shb_item_visible=1
         ORDER BY post.post_created DESC
     `;
 
