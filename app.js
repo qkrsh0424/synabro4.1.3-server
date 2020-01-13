@@ -62,6 +62,9 @@ const auth_userRoute = require(__dirname+'/api/routes/auth_userRoute');
 const get_userRoute = require(__dirname+'/api/routes/get_userRoute');
 const profileRoute = require(__dirname+'/api/routes/profileRoute');
 
+//Service
+const feedbackRoute = require(__dirname+'/api/routes/feedbackRoute');
+
 //Utill
 const mainSearchRoute = require(__dirname+'/api/routes/mainSearchRoute');
 
@@ -97,10 +100,15 @@ app.use('/api/auth/authentication',auth_userRoute);
 app.use('/api/auth/getuser',get_userRoute);
 app.use('/api/auth/profile',profileRoute);
 
+//Service
+app.use('/api/service/feedback', feedbackRoute);
+
+//Util
+app.use('/api/utill/mainSearch', mainSearchRoute);
+
+//admin and member
 app.use('/api/auth/admin/',adminRoute);
 app.use('/api/auth/member/',memberRoute);
-
-app.use('/api/utill/mainSearch', mainSearchRoute);
 //API end
 
 //Render Start
@@ -112,17 +120,17 @@ app.get('/error',function(req,res){
 
 
 // Deploy Setting
-app.use(express.static(path.join(__dirname, "../client/build")));
-
-app.get('/*',function(req,res){
-    res.sendFile(path.join(__dirname, "../client/build", "index.html"));
-});
-
-// app.use(express.static(path.join(__dirname, "../build")));
+// app.use(express.static(path.join(__dirname, "../client/build")));
 
 // app.get('/*',function(req,res){
-//     res.sendFile(path.join(__dirname, "../build", "index.html"));
+//     res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 // });
+
+app.use(express.static(path.join(__dirname, "../build")));
+
+app.get('/*',function(req,res){
+    res.sendFile(path.join(__dirname, "../build", "index.html"));
+});
 
 app.listen(function(){
     console.log('app is running on server');

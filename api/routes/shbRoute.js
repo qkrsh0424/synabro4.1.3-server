@@ -121,6 +121,7 @@ router.get('/getshbItemHeader/all', function(req,res){
 });
 
 router.get('/getshbItemAll', function(req,res){
+    // console.log('hi');
     const shb_num = req.query.shb_num;
     let sql = `
         SELECT * FROM shb_item
