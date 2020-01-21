@@ -125,8 +125,8 @@ router.get('/getshbItemAll', function(req,res){
     const shb_num = req.query.shb_num;
     let sql = `
         SELECT * FROM shb_item
-        WHERE shb_item_isDeleted=0 AND shb_num=?
-        ORDER BY ISNULL(shb_item_order) ASC, shb_item_order ASC
+        WHERE shb_item_isDeleted=0 AND shb_num=? AND shb_item_visible=1
+        ORDER BY ISNULL(shb_item_order) ASC, shb_item_order ASC, shb_item_name ASC
     `;
     let params = [shb_num];
 

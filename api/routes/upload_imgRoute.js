@@ -86,6 +86,9 @@ router.post('/draft-oss', async(req,res)=>{
     // console.log(req.files.file);
     let ossDirectory = 'posterImg/';
     // 구조 형태 : alicloud.com/folder/name 여기서 폴더가 ossDirectory 가되고, name이 저장되는 파일 이름이 된다.
+    if(req.body.imageTarget){
+        ossDirectory = `${req.body.imageTarget}/`;
+    }
     
     if(req.files.file.length){
         let resultDataUrlAll = [];

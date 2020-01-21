@@ -420,4 +420,22 @@ router.post('/category/sub/arraySet', function(req,res){
     }
     return res.json({message:'success'});
 });
+
+// /api/auth/admin/pageInfo/update
+router.post('/pageInfo/update',function(req,res){
+    const group = req.body.group;
+    let sql = `
+        UPDATE shb SET shb_introduce=?, shb_image_url=?, shb_icon_url=?
+        WHERE shb_id=? AND shb_num=?
+    `;
+    let params = [group.shb_introduce, group.shb_image_url, group.shb_icon_url, group.shb_id, group.shb_num];
+
+    connect.query(sql, params, function(err, rows){
+        if(err){
+            console.log(err);
+            return res.json({message:'error'});
+        }
+        return res.json({message:'success'});
+    })
+})
 module.exports = router;
