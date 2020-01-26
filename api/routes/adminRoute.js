@@ -327,6 +327,30 @@ router.post('/category/header/arraySet', function(req,res){
     return res.json({message:'success'});
 });
 
+router.get('/category/sub/getshbItemAll', function(req,res){
+    const shb_num = req.query.shb_num;
+    let sql = `
+        SELECT * FROM shb_item
+        WHERE shb_item_isDeleted=0 AND shb_num=?
+        ORDER BY ISNULL(shb_item_order) ASC, shb_item_order ASC
+    `;
+    let params = [shb_num];
+
+    connect.query(sql, params, function(err, rows, fields){
+        if(err){
+            console.log(err)
+            res.json({message:'DBerror'});
+        }else{
+            if(rows[0]){
+                res.json({message:'success', data:rows});
+            }else{
+                res.json({message:'failure'});
+            }
+            
+        }
+    });
+});
+
 router.post('/category/sub/updateName', function(req,res){
     // console.log(req.body.targetId);
     // console.log(req.body.targetName);
