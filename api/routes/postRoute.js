@@ -27,6 +27,7 @@ router.get('/getpost/all', function (req, res) {
     let sql = `
         SELECT * FROM post 
         JOIN user ON post.user_id=user.user_id
+        JOIN shb ON post.shb_num=shb.shb_num
         JOIN shb_item ON post.shb_item_id=shb_item.shb_item_id
         WHERE post_isDeleted=0 AND shb_item.shb_item_visible=1
         ORDER BY post_created DESC
@@ -41,7 +42,9 @@ router.get('/getpost/all', function (req, res) {
                 let data = {
                     post_id:rows[i].post_id,
                     shb_num: rows[i].shb_num,
+                    shb_name: rows[i].shb_name,
                     shb_item_id: rows[i].shb_item_id,
+                    shb_item_name: rows[i].shb_item_name,
                     parent_route: rows[i].parent_route,
                     post_title: rows[i].post_title,
                     post_desc: rows[i].post_title,
